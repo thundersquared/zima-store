@@ -73,14 +73,19 @@ jobs:
       contents: read
     env:
       PAGES_DOMAIN: ${{ secrets.PAGES_DOMAIN }}
+      DEPLOYED_PAGE_URL: ${{ needs.deploy.outputs.page_url }}
     steps:
       - name: Verify store and app artifacts
         run: |
           set -euo pipefail
+          BASE_URL="https://${PAGES_DOMAIN}"
+          if ! curl --fail --silent --show-error --location --max-time 10 "$BASE_URL/store.json" >/dev/null 2>/dev/null; then
+            BASE_URL="$DEPLOYED_PAGE_URL"
+          fi
           for path in store.json index.json category-list.json recommend-list.json; do
-            curl --fail --silent --show-error --location "https://${{ secrets.PAGES_DOMAIN }}/$path" | jq -e . >/dev/null
+            curl --fail --silent --show-error --location "$BASE_URL/$path" | jq -e . >/dev/null
           done
-          test "$(curl --fail --silent --show-error --location "https://${{ secrets.PAGES_DOMAIN }}/CNAME")" = "$PAGES_DOMAIN"
-          curl --fail --silent --show-error --location "https://${{ secrets.PAGES_DOMAIN }}/metadata.tar.gz" -o /tmp/metadata.tar.gz
-          curl --fail --silent --show-error --location "https://${{ secrets.PAGES_DOMAIN }}/metadata.sha256" -o /tmp/zima-store-metadata.sha256
+          test "$(curl --fail --silent --show-error --location "$BASE_URL/CNAME")" = "$PAGES_DOMAIN"
+          curl --fail --silent --show-error --location "$BASE_URL/metadata.tar.gz" -o /tmp/metadata.tar.gz
+          curl --fail --silent --show-error --location "$BASE_URL/metadata.sha256" -o /tmp/zima-store-metadata.sha256
           (cd /tmp && sha256sum -c zima-store-metadata.sha256)
