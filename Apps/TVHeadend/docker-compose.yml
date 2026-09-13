@@ -106,7 +106,6 @@ x-casaos:
   # TVHeadend tracks LinuxServer's moving latest channel; digest drives updates.
   # renovate: datasource=docker depName=lscr.io/linuxserver/tvheadend
   version: "latest"
-  update_at: "2026-09-12"
   release_notes:
     en_US: Pinned LinuxServer TVHeadend latest manifest; digest is the update signal.
   website: https://www.tvheadend.org/

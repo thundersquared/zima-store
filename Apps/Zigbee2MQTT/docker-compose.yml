@@ -106,7 +106,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=koenkk/zigbee2mqtt
   version: "2.14.1"
-  update_at: "2026-09-03"
   release_notes:
     en_US: Pinned Zigbee2MQTT 2.14.1 manifest.
   website: https://www.zigbee2mqtt.io/

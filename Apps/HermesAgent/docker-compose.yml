@@ -140,7 +140,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=nousresearch/hermes-agent
   version: "v2026.9.11"
-  update_at: "2026-09-11"
   release_notes:
     en_US: Pinned Hermes Agent v2026.9.11 manifest.
   website: https://hermes-agent.nousresearch.com/

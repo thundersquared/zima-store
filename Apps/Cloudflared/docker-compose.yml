@@ -52,7 +52,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=cloudflare/cloudflared
   version: "2026.9.1"
-  update_at: "2026-09-11"
   release_notes:
     en_US: Pinned Cloudflare cloudflared 2026.9.1 manifest.
   website: https://www.cloudflare.com/products/tunnel/

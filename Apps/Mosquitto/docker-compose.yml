@@ -139,7 +139,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=eclipse-mosquitto
   version: "2.1.2-alpine"
-  update_at: "2026-06-22"
   release_notes:
     en_US: Pinned Eclipse Mosquitto 2.1.2 Alpine manifest.
   website: https://mosquitto.org/

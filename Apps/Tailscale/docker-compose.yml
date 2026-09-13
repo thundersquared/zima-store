@@ -73,7 +73,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=ghcr.io/tailscale/tailscale
   version: "stable"
-  update_at: "2026-08-20"
   release_notes:
     en_US: Pinned Tailscale stable manifest.
   website: https://tailscale.com/

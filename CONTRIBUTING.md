@@ -20,8 +20,9 @@ changes must be documented with their security and networking consequences.
 ## Dependency Changes
 
 Prefer Renovate-generated image and action updates. Keep image tags and
-`x-casaos.version` synchronized. Keep image references pinned to manifest-list
-digests and confirm both required architectures before merge.
+`x-casaos.version` synchronized. Omit optional `x-casaos.update_at` metadata to
+avoid stale dates. Keep image references pinned to manifest-list digests and
+confirm both required architectures before merge.
 
 ## Review And Merge
 

@@ -93,7 +93,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=ghcr.io/jellyfin/jellyfin
   version: "12.0"
-  update_at: "2026-09-08"
   release_notes:
     en_US: Pinned Jellyfin 12.0 manifest.
   website: https://jellyfin.org/

@@ -101,7 +101,6 @@ x-casaos:
     - arm64
   # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
   version: "2026.9.1"
-  update_at: "2026-09-05"
   release_notes:
     en_US: Pinned LinuxServer Home Assistant 2026.9.1 manifest.
   website: https://www.home-assistant.io/
