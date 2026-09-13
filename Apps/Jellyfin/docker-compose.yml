@@ -118,7 +118,7 @@ x-casaos:
     - amd64
     - arm64
   # renovate: datasource=docker depName=linuxserver/jellyfin
-  version: "10.11.11"
+  version: "12.0ubu2604-ls48"
   release_notes:
     en_US: Pinned LinuxServer Jellyfin 10.11.10 manifest.
   website: https://jellyfin.org/
