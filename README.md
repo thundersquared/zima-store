@@ -20,14 +20,16 @@ Manual Docker Compose import remains possible from each source definition.
 - Jellyfin: non-root media server, TCP 8096 only, read-only media mount.
 - Mosquitto: authenticated MQTT on TCP 1883 with first-run credential setup.
 - Tailscale: kernel-mode client with persistent state and interactive login.
-- Home Assistant: bridge-mode UI on TCP 8123 without privileged access.
+- Home Assistant: LinuxServer host-mode UI on TCP 8123 with zeroconf/mDNS/UPnP and Bluetooth discovery.
 - Hermes Agent: gateway plus loopback-only dashboard on TCP 9119.
 - TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982.
 - Zigbee2MQTT: bridge-mode Zigbee gateway on TCP 8080 with adapter hardware opt-in.
 
 Every app image uses an explicit version tag and manifest-list digest. Both
-`amd64` and `arm64` are required. Hardware access, host networking, and WAN
-exposure are opt-in edits documented in the app metadata, not defaults.
+`amd64` and `arm64` are required. Hardware access remains opt-in except for
+the documented Home Assistant Bluetooth D-Bus path. Host networking is used
+only for documented discovery or VPN exceptions. WAN exposure remains an
+opt-in edit documented in the app metadata.
 
 ## Security Boundary
 
@@ -43,6 +45,15 @@ keys and must not be exposed to a LAN without an authentication layer.
 TVHeadend starts in bridge mode without DVB devices, GPU devices, host
 networking, or privileged mode. IPTV, SAT>IP, HDHomeRun, DVB adapters, and
 multicast discovery require deliberate host-network/device changes.
+
+Home Assistant uses LinuxServer host networking for zeroconf/mDNS/UPnP and
+Bluetooth discovery. Read-only `/run/dbus`, `NET_ADMIN`, and `NET_RAW` enable
+Bluetooth when host BlueZ is configured; override the source path with
+`HOME_ASSISTANT_DBUS_PATH` when needed. Host mode exposes port 8123 and any
+configured Home Assistant listeners directly on the host, so keep it
+trusted-LAN-only. Set `HOME_ASSISTANT_PUID` and `HOME_ASSISTANT_PGID` to the
+IDs owning the config directory. USB, serial, and other device mappings remain
+disabled by default.
 
 ## Build
 

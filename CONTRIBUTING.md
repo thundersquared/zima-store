@@ -13,8 +13,9 @@ Every editable environment variable, published port, and persistent volume
 needs a service-level `x-casaos` description.
 
 Do not add Docker socket mounts, host root mounts, broad device mounts,
-`privileged: true`, or direct WAN assumptions. Hardware and discovery changes
-must be opt-in and documented with their security and networking consequences.
+`privileged: true`, or direct WAN assumptions. Hardware access remains opt-in
+unless app metadata documents a required exception. Discovery and host-network
+changes must be documented with their security and networking consequences.
 
 ## Dependency Changes
 

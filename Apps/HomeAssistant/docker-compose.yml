@@ -1,45 +1,66 @@
 name: homeassistant
 services:
   homeassistant:
-    # renovate: datasource=docker depName=ghcr.io/home-assistant/home-assistant
-    image: ghcr.io/home-assistant/home-assistant:2026.9.2@sha256:a1bc133af84ee6505fe2c266d9805b7c75b780dfdc188edfee3b11e8f3cd8efe
+    # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
+    image: lscr.io/linuxserver/homeassistant:2026.9.1@sha256:9275f3697e72d5ea042bc54663b848c4aae59596195eba396df3b37738123907
     environment:
+      PUID: "${HOME_ASSISTANT_PUID:-1000}"
+      PGID: "${HOME_ASSISTANT_PGID:-1000}"
       TZ: "${TZ:-UTC}"
-    ports:
-      - target: 8123
-        published: "8123"
-        protocol: tcp
+    network_mode: host
     volumes:
       - type: bind
         source: "${HOME_ASSISTANT_CONFIG_PATH:-/DATA/AppData/homeassistant/config}"
         target: /config
-    networks:
-      - homeassistant
-    stop_grace_period: 1m
+      - type: bind
+        source: "${HOME_ASSISTANT_DBUS_PATH:-/run/dbus}"
+        target: /run/dbus
+        read_only: true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 2GB
+        reservations:
+          memory: 256MB
+    stop_grace_period: 5m
     restart: unless-stopped
     tmpfs:
       - /tmp
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      # s6 must signal Home Assistant after dropping it to PUID/PGID.
+      - KILL
+      - NET_ADMIN
+      - NET_BIND_SERVICE
+      - NET_RAW
+      - SETFCAP
+      - SETGID
+      - SETUID
     cap_drop:
       - ALL
-    security_opt:
-      - no-new-privileges:true
     x-casaos:
       envs:
+        - container: PUID
+          description:
+            en_US: LinuxServer user ID owning files in the /config directory. Match the host config directory owner.
+        - container: PGID
+          description:
+            en_US: LinuxServer group ID owning files in the /config directory. Match the host config directory group.
         - container: TZ
           description:
             en_US: Timezone used by Home Assistant.
-      ports:
-        - container: "8123"
-          description:
-            en_US: Home Assistant web interface.
       volumes:
         - container: /config
           description:
             en_US: Persistent Home Assistant configuration and state.
-
-networks:
-  homeassistant:
-    driver: bridge
+        - container: /run/dbus
+          description:
+            en_US: >-
+              Read-only host D-Bus socket required for Bluetooth integrations.
+              Default source path is /run/dbus.
 
 x-casaos:
   id: com.thundersquared.homeassistant
@@ -47,34 +68,44 @@ x-casaos:
   index: /
   port_map: "8123"
   scheme: http
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/home-assistant.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/home-assistant.svg
   title:
     en_US: Home Assistant
   tagline:
-    en_US: Open home automation hub without privileged container access
+    en_US: Home automation hub with discovery and Bluetooth on trusted LANs
   description:
     en_US: >-
-      Home Assistant in a bridge network with a persistent configuration
-      directory, a 60-second graceful shutdown, and no privileged mode, host
-      networking, D-Bus, USB, serial, Bluetooth, or broad device mounts.
+      LinuxServer Home Assistant 2026.9.1 with host networking for zeroconf,
+      mDNS, UPnP, and Bluetooth discovery. Read-only host D-Bus access plus
+      NET_ADMIN and NET_RAW enable Bluetooth integrations when host BlueZ is
+      configured. The persistent /config bind mount uses configurable
+      LinuxServer PUID and PGID ownership. Host networking exposes Home
+      Assistant and any configured listeners directly on the trusted LAN.
+      Privileged mode, USB, serial devices, and broad device mounts remain
+      disabled.
   tips:
     before_install:
       en_US: >-
-        This baseline favors isolation over automatic discovery. Bluetooth,
-        USB, serial, D-Bus, host networking, and other hardware integrations
-        need explicit reviewed additions documented by Home Assistant.
+        Host networking enables zeroconf, mDNS, and UPnP discovery but expands
+        the trusted-LAN boundary and exposes all Home Assistant listeners
+        directly on the host. Read-only /run/dbus plus NET_ADMIN and NET_RAW
+        enable Bluetooth when host BlueZ is configured. Override the source
+        path with HOME_ASSISTANT_DBUS_PATH when needed. Keep this app on a
+        trusted LAN. Set PUID and PGID to the user and group owning the
+        configured /config directory. USB, serial, and other device mappings
+        remain disabled; add them only after review.
   author: thundersquared
-  developer: Home Assistant
+  developer: LinuxServer.io
   category: Home
   architectures:
     - amd64
     - arm64
-  # renovate: datasource=docker depName=ghcr.io/home-assistant/home-assistant
-  version: "2026.9.2"
-  update_at: "2026-09-11"
+  # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
+  version: "2026.9.1"
+  update_at: "2026-09-05"
   release_notes:
-    en_US: Pinned Home Assistant 2026.9.2 manifest.
+    en_US: Pinned LinuxServer Home Assistant 2026.9.1 manifest.
   website: https://www.home-assistant.io/
-  repo: https://github.com/home-assistant/core
-  support: https://community.home-assistant.io/
-  docs: https://www.home-assistant.io/docs/
+  repo: https://github.com/linuxserver/docker-homeassistant
+  support: https://discourse.linuxserver.io/
+  docs: https://docs.linuxserver.io/images/docker-homeassistant/
