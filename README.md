@@ -1,10 +1,10 @@
-# ThunderSquared Zima Store
+# thundersquared Zima Store
 
 Security-first ZimaOS v2 app store for trusted-LAN deployments.
 
 Store URL:
 
-`https://zima-store.oss.sqrd-cdn.com`
+`https://zima-store.oss.sqrd-cdn.com/store.json`
 
 Configure repository secret `PAGES_DOMAIN` with value
 `zima-store.oss.sqrd-cdn.com`. Publish workflow uses it for generated URLs and
