@@ -68,7 +68,7 @@ x-casaos:
   index: /
   port_map: "8096"
   scheme: http
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/jellyfin.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/jellyfin.svg
   title:
     en_US: Jellyfin
   tagline:

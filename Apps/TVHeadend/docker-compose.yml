@@ -80,7 +80,7 @@ x-casaos:
   index: /
   port_map: "9981"
   scheme: http
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/tvheadend.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/tvheadend.svg
   title:
     en_US: TVHeadend
   tagline:

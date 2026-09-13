@@ -82,7 +82,7 @@ x-casaos:
   index: /
   port_map: "8080"
   scheme: http
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/zigbee2mqtt.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/zigbee2mqtt.svg
   title:
     en_US: Zigbee2MQTT
   tagline:

@@ -48,7 +48,7 @@ volumes:
 x-casaos:
   id: com.thundersquared.tailscale
   main: tailscale
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/tailscale.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/tailscale.svg
   title:
     en_US: Tailscale
   tagline:

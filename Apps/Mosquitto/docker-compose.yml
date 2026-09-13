@@ -114,7 +114,7 @@ volumes:
 x-casaos:
   id: com.thundersquared.mosquitto
   main: mosquitto
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/mosquitto.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/mosquitto.svg
   title:
     en_US: Eclipse Mosquitto
   tagline:

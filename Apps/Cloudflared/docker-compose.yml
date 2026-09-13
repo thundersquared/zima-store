@@ -29,7 +29,7 @@ networks:
 x-casaos:
   id: com.thundersquared.cloudflared
   main: cloudflared
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/cloudflare.png
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/cloudflare.svg
   title:
     en_US: Cloudflared
   tagline:
