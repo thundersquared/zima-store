@@ -17,7 +17,9 @@ Manual Docker Compose import remains possible from each source definition.
 ## Included Apps
 
 - Cloudflared: token-managed tunnel, no published port.
-- Jellyfin: non-root media server, TCP 8096 only, read-only media mount.
+- Jellyfin: LinuxServer bridge-mode media server on HTTP 8097, optional HTTPS
+  8921, UDP discovery 7359/1900, read-only media, and configurable PUID/PGID
+  ownership.
 - Mosquitto: authenticated MQTT on TCP 1883 with first-run credential setup.
 - Tailscale: kernel-mode client with persistent state and interactive login.
 - Home Assistant: LinuxServer host-mode UI on TCP 8123 with zeroconf/mDNS/UPnP and Bluetooth discovery.
@@ -54,6 +56,11 @@ configured Home Assistant listeners directly on the host, so keep it
 trusted-LAN-only. Set `HOME_ASSISTANT_PUID` and `HOME_ASSISTANT_PGID` to the
 IDs owning the config directory. USB, serial, and other device mappings remain
 disabled by default.
+
+Jellyfin publishes UDP 7359 client discovery and UDP 1900 SSDP/DLNA discovery
+for trusted-LAN use. Keep both ports off untrusted networks; UDP 1900 also
+requires no competing host SSDP service. Port 8921 is published for HTTPS but
+remains inactive until certificates and Jellyfin HTTPS settings are configured.
 
 ## Build
 

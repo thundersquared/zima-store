@@ -1,101 +1,127 @@
 name: jellyfin
 services:
   jellyfin:
-    # renovate: datasource=docker depName=ghcr.io/jellyfin/jellyfin
-    image: ghcr.io/jellyfin/jellyfin:12.0@sha256:74f4d87d9cf262c52d62be6be265c0355c6a7e21d0477ab6c654a49a4f8b1fd4
-    user: "${JELLYFIN_UID:-1000}:${JELLYFIN_GID:-1000}"
+    # renovate: datasource=docker depName=linuxserver/jellyfin
+    image: linuxserver/jellyfin:10.11.10@sha256:be2bd22d5e27451ebc14b326d8a6554e1f51c79f4431d6c71522565ed17f06ea
     environment:
-      TZ: "${TZ:-UTC}"
-      JELLYFIN_PublishedServerUrl: "${JELLYFIN_PUBLISHED_SERVER_URL:-}"
+      PUID: "${JELLYFIN_PUID:-1000}"
+      PGID: "${JELLYFIN_PGID:-1000}"
+      TZ: "${TZ:-Europe/Bucharest}"
     ports:
       - target: 8096
-        published: "8096"
+        published: "8097"
         protocol: tcp
+      - target: 8920
+        published: "8921"
+        protocol: tcp
+      - target: 7359
+        published: "7359"
+        protocol: udp
+      - target: 1900
+        published: "1900"
+        protocol: udp
     volumes:
       - type: bind
         source: "${JELLYFIN_CONFIG_PATH:-/DATA/AppData/jellyfin/config}"
         target: /config
       - type: bind
-        source: "${JELLYFIN_CACHE_PATH:-/DATA/AppData/jellyfin/cache}"
-        target: /cache
-      - type: bind
         source: "${JELLYFIN_MEDIA_PATH:-/DATA/Media}"
         target: /DATA/Media
         read_only: true
-    networks:
-      - jellyfin
+    network_mode: bridge
+    deploy:
+      resources:
+        limits:
+          memory: 4GB
+          cpus: "1.00"
+        reservations:
+          memory: 256MB
     restart: unless-stopped
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
     x-casaos:
       envs:
+        - container: PUID
+          description:
+            en_US: LinuxServer user ID owning files in the /config directory. Match the host config directory owner. Defaults to 1000.
+        - container: PGID
+          description:
+            en_US: LinuxServer group ID owning files in the /config directory. Match the host config directory group. Defaults to 1000.
         - container: TZ
           description:
-            en_US: Timezone used by Jellyfin.
-        - container: JELLYFIN_PublishedServerUrl
-          description:
-            en_US: Optional public server URL used in discovery responses.
-        - container: JELLYFIN_UID
-          description:
-            en_US: Host user ID owning the writable Jellyfin directories.
-        - container: JELLYFIN_GID
-          description:
-            en_US: Host group ID owning the writable Jellyfin directories.
+            en_US: Timezone used by Jellyfin. Defaults to Europe/Bucharest.
       ports:
         - container: "8096"
           description:
-            en_US: Jellyfin HTTP web interface.
+            en_US: Jellyfin HTTP web interface, published on host port 8097.
+        - container: "8920"
+          description:
+            en_US: Optional Jellyfin HTTPS interface, published on host port 8921. Configure certificates and HTTPS in Jellyfin before use.
+        - container: "7359"
+          description:
+            en_US: Optional Jellyfin client discovery over UDP, published on host port 7359. Use only on a trusted LAN.
+        - container: "1900"
+          description:
+            en_US: Optional Jellyfin DLNA and SSDP discovery over UDP, published on host port 1900. Use only on a trusted LAN and avoid host SSDP conflicts.
       volumes:
         - container: /config
           description:
-            en_US: Writable Jellyfin configuration directory.
-        - container: /cache
-          description:
-            en_US: Writable Jellyfin cache and transcode directory.
+            en_US: Persistent Jellyfin configuration and state. LinuxServer writes files as PUID and PGID.
         - container: /DATA/Media
           description:
-            en_US: Read-only media library.
-
-networks:
-  jellyfin:
-    driver: bridge
+            en_US: Read-only media library. Jellyfin cannot write artwork, metadata, or NFO files beside source media.
 
 x-casaos:
   id: com.thundersquared.jellyfin
   main: jellyfin
   index: /
-  port_map: "8096"
+  port_map: "8097"
   scheme: http
-  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/jellyfin.svg
+  icon: https://cdn.jsdelivr.net/gh/IceWhaleTech/CasaOS-AppStore@gh-pages/apps/org.icewhale.jellyfin/assets/icon.svg
   title:
     en_US: Jellyfin
   tagline:
     en_US: Personal media server for movies, shows, music, and photos
   description:
     en_US: >-
-      Jellyfin media server with a non-root process, separate writable
-      configuration and cache paths, and a read-only media library mount.
-      DLNA, host networking, GPU access, and device mappings are intentionally
-      disabled in this baseline.
+      LinuxServer Jellyfin 10.11.10 in bridge mode with configurable PUID and
+      PGID ownership for persistent configuration. HTTP is published on host
+      port 8097. Optional HTTPS uses 8921, client discovery uses UDP 7359, and
+      DLNA/SSDP discovery uses UDP 1900. The /DATA/Media library is read-only.
+      Discovery ports are intended for trusted LANs. Hardware acceleration is
+      opt-in: add /dev/dri on supported Intel, AMD, or ARM hosts; add
+      Raspberry Pi-specific devices and libraries only when every host path
+      exists.
   tips:
     before_install:
       en_US: >-
-        Ensure the config and cache directories are writable by JELLYFIN_UID
-        and JELLYFIN_GID. Add hardware acceleration only after reviewing the
-        device and capability requirements.
+        Set JELLYFIN_PUID and JELLYFIN_PGID to the user and group owning
+        /DATA/AppData/jellyfin/config. HTTP is available on port 8097. Port
+        8921 remains inactive until certificates and Jellyfin HTTPS settings
+        are configured. UDP 7359 and 1900 provide client and DLNA/SSDP
+        discovery; keep them on a trusted LAN and ensure UDP 1900 has no host
+        SSDP conflict. Media is mounted read-only. Hardware acceleration is
+        disabled by default; add /dev/dri or Raspberry Pi-specific mappings
+        only after confirming host device and library paths.
   author: thundersquared
-  developer: Jellyfin
+  developer: LinuxServer.io
   category: Media
   architectures:
     - amd64
     - arm64
-  # renovate: datasource=docker depName=ghcr.io/jellyfin/jellyfin
-  version: "12.0"
+  # renovate: datasource=docker depName=linuxserver/jellyfin
+  version: "10.11.10"
   release_notes:
-    en_US: Pinned Jellyfin 12.0 manifest.
+    en_US: Pinned LinuxServer Jellyfin 10.11.10 manifest.
   website: https://jellyfin.org/
-  repo: https://github.com/jellyfin/jellyfin
-  support: https://forum.jellyfin.org/
-  docs: https://jellyfin.org/docs/
+  repo: https://github.com/linuxserver/docker-jellyfin
+  support: https://discourse.linuxserver.io/
+  docs: https://docs.linuxserver.io/images/docker-jellyfin/
