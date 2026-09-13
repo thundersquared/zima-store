@@ -34,6 +34,12 @@
       "groupName": "app images and metadata"
     },
     {
+      "description": "Keep metadata markers tag-based",
+      "matchManagers": ["custom.regex"],
+      "matchUpdateTypes": ["pinDigest"],
+      "enabled": false
+    },
+    {
       "description": "Refresh moving container channels immediately",
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["digest"],
