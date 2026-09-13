@@ -17,6 +17,7 @@ Manual Docker Compose import remains possible from each source definition.
 ## Included Apps
 
 - Cloudflared: token-managed tunnel, no published port.
+- MySpeed: bridge-mode speed-test monitoring on TCP 5216 with scheduled tests and persistent history.
 - Jellyfin: LinuxServer bridge-mode media server on HTTP 8097, optional HTTPS
   8921, UDP discovery 7359/1900, read-only media, and configurable PUID/PGID
   ownership.
@@ -47,6 +48,16 @@ keys and must not be exposed to a LAN without an authentication layer.
 TVHeadend starts in bridge mode without DVB devices, GPU devices, host
 networking, or privileged mode. IPTV, SAT>IP, HDHomeRun, DVB adapters, and
 multicast discovery require deliberate host-network/device changes.
+
+MySpeed starts without password protection. Keep its HTTP port on a trusted LAN
+while completing initial configuration and setting supported password protection;
+put any externally reachable deployment behind an authenticated reverse proxy,
+VPN, or tunnel. First startup downloads Ookla and LibreSpeed clients over
+outbound HTTPS, so DNS, GitHub, or speed-test download failures can prevent
+initialization. Scheduled tests consume WAN bandwidth; choose cron frequency
+deliberately. Persistent MySpeed data includes speed history, password state,
+node configuration, and integration or webhook credentials; treat volume
+backups and migrations as sensitive.
 
 Home Assistant uses LinuxServer host networking for zeroconf/mDNS/UPnP and
 Bluetooth discovery. Read-only `/run/dbus`, `NET_ADMIN`, and `NET_RAW` enable

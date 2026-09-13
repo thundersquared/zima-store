@@ -1,0 +1,87 @@
+name: myspeed
+services:
+  myspeed:
+    # renovate: datasource=docker depName=germannewsmaker/myspeed
+    image: germannewsmaker/myspeed:1.0.9@sha256:3a3e774b3f78d930a5a962d625b99bcb3d71730bfeb4a6b93e04fd38cfe7d9a9
+    environment:
+      TZ: "${TZ:-Etc/UTC}"
+    ports:
+      - target: 5216
+        published: "5216"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: myspeed-data
+        target: /myspeed/data
+    networks:
+      - myspeed
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by MySpeed. Defaults to Etc/UTC.
+      ports:
+        - container: "5216"
+          description:
+            en_US: MySpeed HTTP web interface. Keep it on a trusted LAN until password protection is configured.
+      volumes:
+        - container: /myspeed/data
+          description:
+            en_US: Persistent MySpeed history, SQLite database, settings, password state, node configuration, and integration credentials.
+
+networks:
+  myspeed:
+    driver: bridge
+
+volumes:
+  myspeed-data:
+
+x-casaos:
+  id: com.thundersquared.myspeed
+  main: myspeed
+  index: /
+  port_map: "5216"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/myspeed.png
+  title:
+    en_US: MySpeed
+  tagline:
+    en_US: Self-hosted internet speed test monitoring and history
+  description:
+    en_US: >-
+      MySpeed records internet speed-test results, charts history, and schedules
+      tests with cron. It runs in bridge mode on HTTP port 5216 and stores SQLite
+      data under /myspeed/data. Configure a provider and schedule in the UI.
+      MySpeed downloads its Ookla and LibreSpeed command-line clients during
+      startup, so outbound HTTPS is required. Scheduled tests consume WAN
+      bandwidth.
+  tips:
+    before_install:
+      en_US: >-
+        Password protection is disabled by default. Configure MySpeed from a
+        trusted LAN first, set a MySpeed password, then use an authenticated
+        reverse proxy, VPN, or tunnel before any untrusted or Internet exposure.
+        First startup needs outbound HTTPS to download speed-test clients. Choose
+        cron frequency carefully because tests can consume substantial WAN
+        bandwidth. The persistent data volume contains history, password state,
+        node configuration, and integration or webhook credentials; treat
+        backups as sensitive.
+  author: thundersquared
+  developer: MySpeed
+  category: Networking
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=germannewsmaker/myspeed
+  version: "1.0.9"
+  release_notes:
+    en_US: Pinned MySpeed 1.0.9 stable manifest with Linux amd64 and arm64 support.
+  website: https://myspeed.dev
+  repo: https://github.com/gnmyt/myspeed
+  support: https://github.com/gnmyt/myspeed/issues
+  docs: https://docs.myspeed.dev/setup/linux
