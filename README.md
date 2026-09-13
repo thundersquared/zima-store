@@ -59,6 +59,11 @@ deliberately. Persistent MySpeed data includes speed history, password state,
 node configuration, and integration or webhook credentials; treat volume
 backups and migrations as sensitive.
 
+MySpeed drops all Linux capabilities except `NET_ADMIN` and `NET_RAW`, which
+Ookla requires for interface-bound speed tests. These permit network
+administration and raw packet operations; keep MySpeed trusted-LAN-only and do
+not add broader capabilities.
+
 Home Assistant uses LinuxServer host networking for zeroconf/mDNS/UPnP and
 Bluetooth discovery. Read-only `/run/dbus`, `NET_ADMIN`, and `NET_RAW` enable
 Bluetooth when host BlueZ is configured; override the source path with

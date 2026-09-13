@@ -18,6 +18,9 @@ services:
     restart: unless-stopped
     cap_drop:
       - ALL
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     security_opt:
       - no-new-privileges:true
     x-casaos:
@@ -58,8 +61,10 @@ x-casaos:
       tests with cron. It runs in bridge mode on HTTP port 5216 and stores SQLite
       data under /myspeed/data. Configure a provider and schedule in the UI.
       MySpeed downloads its Ookla and LibreSpeed command-line clients during
-      startup, so outbound HTTPS is required. Scheduled tests consume WAN
-      bandwidth.
+      startup, so outbound HTTPS is required. Only NET_ADMIN and NET_RAW are
+      retained so the Ookla client can bind its test interface and complete
+      speed tests; all other Linux capabilities are dropped. Scheduled tests
+      consume WAN bandwidth.
   tips:
     before_install:
       en_US: >-
@@ -68,9 +73,11 @@ x-casaos:
         reverse proxy, VPN, or tunnel before any untrusted or Internet exposure.
         First startup needs outbound HTTPS to download speed-test clients. Choose
         cron frequency carefully because tests can consume substantial WAN
-        bandwidth. The persistent data volume contains history, password state,
-        node configuration, and integration or webhook credentials; treat
-        backups as sensitive.
+        bandwidth. The container retains NET_ADMIN and NET_RAW for Ookla;
+        these permit network administration and raw packet operations, so keep
+        it on a trusted LAN. The persistent data volume contains history,
+        password state, node configuration, and integration or webhook
+        credentials; treat backups as sensitive.
   author: thundersquared
   developer: MySpeed
   category: Networking
