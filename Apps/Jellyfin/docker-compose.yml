@@ -1,0 +1,102 @@
+name: jellyfin
+services:
+  jellyfin:
+    # renovate: datasource=docker depName=ghcr.io/jellyfin/jellyfin
+    image: ghcr.io/jellyfin/jellyfin:12.0@sha256:74f4d87d9cf262c52d62be6be265c0355c6a7e21d0477ab6c654a49a4f8b1fd4
+    user: "${JELLYFIN_UID:-1000}:${JELLYFIN_GID:-1000}"
+    environment:
+      TZ: "${TZ:-UTC}"
+      JELLYFIN_PublishedServerUrl: "${JELLYFIN_PUBLISHED_SERVER_URL:-}"
+    ports:
+      - target: 8096
+        published: "8096"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: "${JELLYFIN_CONFIG_PATH:-/DATA/AppData/jellyfin/config}"
+        target: /config
+      - type: bind
+        source: "${JELLYFIN_CACHE_PATH:-/DATA/AppData/jellyfin/cache}"
+        target: /cache
+      - type: bind
+        source: "${JELLYFIN_MEDIA_PATH:-/DATA/Media}"
+        target: /DATA/Media
+        read_only: true
+    networks:
+      - jellyfin
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by Jellyfin.
+        - container: JELLYFIN_PublishedServerUrl
+          description:
+            en_US: Optional public server URL used in discovery responses.
+        - container: JELLYFIN_UID
+          description:
+            en_US: Host user ID owning the writable Jellyfin directories.
+        - container: JELLYFIN_GID
+          description:
+            en_US: Host group ID owning the writable Jellyfin directories.
+      ports:
+        - container: "8096"
+          description:
+            en_US: Jellyfin HTTP web interface.
+      volumes:
+        - container: /config
+          description:
+            en_US: Writable Jellyfin configuration directory.
+        - container: /cache
+          description:
+            en_US: Writable Jellyfin cache and transcode directory.
+        - container: /DATA/Media
+          description:
+            en_US: Read-only media library.
+
+networks:
+  jellyfin:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.jellyfin
+  main: jellyfin
+  index: /
+  port_map: "8096"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/jellyfin.png
+  title:
+    en_US: Jellyfin
+  tagline:
+    en_US: Personal media server for movies, shows, music, and photos
+  description:
+    en_US: >-
+      Jellyfin media server with a non-root process, separate writable
+      configuration and cache paths, and a read-only media library mount.
+      DLNA, host networking, GPU access, and device mappings are intentionally
+      disabled in this baseline.
+  tips:
+    before_install:
+      en_US: >-
+        Ensure the config and cache directories are writable by JELLYFIN_UID
+        and JELLYFIN_GID. Add hardware acceleration only after reviewing the
+        device and capability requirements.
+  author: thundersquared
+  developer: Jellyfin
+  category: Media
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=ghcr.io/jellyfin/jellyfin
+  version: "12.0"
+  update_at: "2026-09-08"
+  release_notes:
+    en_US: Pinned Jellyfin 12.0 manifest.
+  website: https://jellyfin.org/
+  repo: https://github.com/jellyfin/jellyfin
+  support: https://forum.jellyfin.org/
+  docs: https://jellyfin.org/docs/

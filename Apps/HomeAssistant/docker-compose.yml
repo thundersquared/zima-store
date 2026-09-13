@@ -1,0 +1,80 @@
+name: homeassistant
+services:
+  homeassistant:
+    # renovate: datasource=docker depName=ghcr.io/home-assistant/home-assistant
+    image: ghcr.io/home-assistant/home-assistant:2026.9.2@sha256:a1bc133af84ee6505fe2c266d9805b7c75b780dfdc188edfee3b11e8f3cd8efe
+    environment:
+      TZ: "${TZ:-UTC}"
+    ports:
+      - target: 8123
+        published: "8123"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: "${HOME_ASSISTANT_CONFIG_PATH:-/DATA/AppData/homeassistant/config}"
+        target: /config
+    networks:
+      - homeassistant
+    stop_grace_period: 1m
+    restart: unless-stopped
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by Home Assistant.
+      ports:
+        - container: "8123"
+          description:
+            en_US: Home Assistant web interface.
+      volumes:
+        - container: /config
+          description:
+            en_US: Persistent Home Assistant configuration and state.
+
+networks:
+  homeassistant:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.homeassistant
+  main: homeassistant
+  index: /
+  port_map: "8123"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/home-assistant.png
+  title:
+    en_US: Home Assistant
+  tagline:
+    en_US: Open home automation hub without privileged container access
+  description:
+    en_US: >-
+      Home Assistant in a bridge network with a persistent configuration
+      directory, a 60-second graceful shutdown, and no privileged mode, host
+      networking, D-Bus, USB, serial, Bluetooth, or broad device mounts.
+  tips:
+    before_install:
+      en_US: >-
+        This baseline favors isolation over automatic discovery. Bluetooth,
+        USB, serial, D-Bus, host networking, and other hardware integrations
+        need explicit reviewed additions documented by Home Assistant.
+  author: thundersquared
+  developer: Home Assistant
+  category: Home
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=ghcr.io/home-assistant/home-assistant
+  version: "2026.9.2"
+  update_at: "2026-09-11"
+  release_notes:
+    en_US: Pinned Home Assistant 2026.9.2 manifest.
+  website: https://www.home-assistant.io/
+  repo: https://github.com/home-assistant/core
+  support: https://community.home-assistant.io/
+  docs: https://www.home-assistant.io/docs/

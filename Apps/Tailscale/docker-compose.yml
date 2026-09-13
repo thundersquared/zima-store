@@ -1,0 +1,82 @@
+name: tailscale
+services:
+  tailscale:
+    # renovate: datasource=docker depName=ghcr.io/tailscale/tailscale
+    image: ghcr.io/tailscale/tailscale:stable@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
+    environment:
+      TS_AUTH_ONCE: "true"
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"
+    network_mode: host
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    cap_drop:
+      - ALL
+    volumes:
+      - type: volume
+        source: tailscale-state
+        target: /var/lib/tailscale
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TS_AUTH_ONCE
+          description:
+            en_US: Reuse persistent login state after the first authorization.
+        - container: TS_STATE_DIR
+          description:
+            en_US: Persistent Tailscale state directory.
+        - container: TS_USERSPACE
+          description:
+            en_US: Keep kernel networking enabled. Requires /dev/net/tun and capabilities.
+      volumes:
+        - container: /var/lib/tailscale
+          description:
+            en_US: Persistent node identity and state.
+      devices:
+        - container: /dev/net/tun
+          description:
+            en_US: Kernel TUN device required for kernel-mode networking.
+
+volumes:
+  tailscale-state:
+
+x-casaos:
+  id: com.thundersquared.tailscale
+  main: tailscale
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/tailscale.png
+  title:
+    en_US: Tailscale
+  tagline:
+    en_US: Secure private networking for your Zima device
+  description:
+    en_US: >-
+      Runs the official Tailscale container in kernel mode with persistent
+      state. Host networking, /dev/net/tun, NET_ADMIN, and NET_RAW are the
+      minimum required exception for this VPN client. No auth key, routes,
+      exit node, SSH, Funnel, or Serve settings are enabled by default.
+  tips:
+    before_install:
+      en_US: >-
+        Open the authorization URL printed in the container logs. No
+        TS_AUTHKEY is stored or required. Review any routes or exit-node use
+        separately before adding them.
+  author: thundersquared
+  developer: Tailscale
+  category: Networking
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=ghcr.io/tailscale/tailscale
+  version: "stable"
+  update_at: "2026-08-20"
+  release_notes:
+    en_US: Pinned Tailscale stable manifest.
+  website: https://tailscale.com/
+  repo: https://github.com/tailscale/tailscale
+  support: https://tailscale.com/kb/
+  docs: https://tailscale.com/kb/1282/docker/

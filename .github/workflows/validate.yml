@@ -1,0 +1,52 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Build ZimaOS v2 output
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PAGES_DOMAIN: ${{ secrets.PAGES_DOMAIN }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build ZimaOS v2 output
+        uses: IceWhaleTech/build-appstore-action@407bf02f7ca1d3d610c88c895dc28b016bdace48 # v1.1.2
+        with:
+          source: .
+          output: dist
+          base-url: https://${{ env.PAGES_DOMAIN || 'validation.invalid' }}
+          install-system-deps: "true"
+
+      - name: Add Pages custom domain
+        if: env.PAGES_DOMAIN != ''
+        run: printf '%s\n' "$PAGES_DOMAIN" > dist/CNAME
+
+      - name: Include store catalog lists
+        run: cp category-list.json recommend-list.json dist/
+
+      - name: Upload generated output
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zima-store-validation-${{ github.run_id }}
+          path: dist
+          if-no-files-found: warn

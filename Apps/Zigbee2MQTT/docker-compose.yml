@@ -1,0 +1,115 @@
+name: zigbee2mqtt
+services:
+  zigbee2mqtt:
+    # renovate: datasource=docker depName=koenkk/zigbee2mqtt
+    image: koenkk/zigbee2mqtt:2.14.1@sha256:fef0de769dcd04c27b3a6d277b61046eb96284bdd4198dcb1687c3a01b3020f3
+    environment:
+      TZ: "${TZ:-UTC}"
+      ZIGBEE2MQTT_CONFIG_MQTT_SERVER: "${ZIGBEE2MQTT_MQTT_SERVER:-mqtt://host.docker.internal:1883}"
+      ZIGBEE2MQTT_CONFIG_MQTT_USER: "${ZIGBEE2MQTT_MQTT_USER:-}"
+      ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD: "${ZIGBEE2MQTT_MQTT_PASSWORD:-}"
+      ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED: "true"
+      ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: "8080"
+      ZIGBEE2MQTT_CONFIG_SERIAL_PORT: "${ZIGBEE2MQTT_SERIAL_PORT:-}"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - target: 8080
+        published: "8080"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: "${ZIGBEE2MQTT_DATA_PATH:-/DATA/AppData/zigbee2mqtt/data}"
+        target: /app/data
+    networks:
+      - zigbee2mqtt
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by Zigbee2MQTT.
+        - container: ZIGBEE2MQTT_CONFIG_MQTT_SERVER
+          description:
+            en_US: MQTT server URL. Defaults to the host Mosquitto listener.
+        - container: ZIGBEE2MQTT_CONFIG_MQTT_USER
+          description:
+            en_US: MQTT username.
+        - container: ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD
+          description:
+            en_US: MQTT password. Keep this secret.
+        - container: ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED
+          description:
+            en_US: Enable the Zigbee2MQTT web frontend.
+        - container: ZIGBEE2MQTT_CONFIG_FRONTEND_PORT
+          description:
+            en_US: Zigbee2MQTT web frontend port.
+        - container: ZIGBEE2MQTT_CONFIG_SERIAL_PORT
+          description:
+            en_US: Optional adapter path configured during onboarding.
+        - container: ZIGBEE2MQTT_MQTT_SERVER
+          description:
+            en_US: Installer override for the MQTT server URL.
+        - container: ZIGBEE2MQTT_MQTT_USER
+          description:
+            en_US: Installer override for the MQTT username.
+        - container: ZIGBEE2MQTT_MQTT_PASSWORD
+          description:
+            en_US: Installer override for the MQTT password.
+        - container: ZIGBEE2MQTT_SERIAL_PORT
+          description:
+            en_US: Installer override for the Zigbee adapter path.
+      ports:
+        - container: "8080"
+          description:
+            en_US: Zigbee2MQTT web frontend and onboarding port.
+      volumes:
+        - container: /app/data
+          description:
+            en_US: Persistent Zigbee2MQTT configuration, database, and logs.
+
+networks:
+  zigbee2mqtt:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.zigbee2mqtt
+  main: zigbee2mqtt
+  index: /
+  port_map: "8080"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/zigbee2mqtt.png
+  title:
+    en_US: Zigbee2MQTT
+  tagline:
+    en_US: Bridge Zigbee devices to MQTT and Home Assistant
+  description:
+    en_US: >-
+      Zigbee2MQTT with persistent state, an authenticated MQTT configuration,
+      and bridge networking. No serial or USB device is mapped by default;
+      add the reviewed adapter device after identifying its stable host path.
+  tips:
+    before_install:
+      en_US: >-
+        Configure MQTT credentials during onboarding. Add a stable
+        /dev/serial/by-id adapter mapping only after checking the adapter
+        permissions and keeping the host path specific.
+  author: thundersquared
+  developer: Koenkk
+  category: Home
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=koenkk/zigbee2mqtt
+  version: "2.14.1"
+  update_at: "2026-09-03"
+  release_notes:
+    en_US: Pinned Zigbee2MQTT 2.14.1 manifest.
+  website: https://www.zigbee2mqtt.io/
+  repo: https://github.com/Koenkk/zigbee2mqtt
+  support: https://github.com/Koenkk/zigbee2mqtt/discussions
+  docs: https://www.zigbee2mqtt.io/guide/

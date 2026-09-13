@@ -1,0 +1,115 @@
+name: tvheadend
+services:
+  tvheadend:
+    # renovate: datasource=docker depName=lscr.io/linuxserver/tvheadend
+    image: lscr.io/linuxserver/tvheadend:latest@sha256:04caf2d70776233154fff1a184647c72068b3aa1593f3576c1c9ea3a755ae18c
+    environment:
+      PUID: "${TVHEADEND_PUID:-1000}"
+      PGID: "${TVHEADEND_PGID:-1000}"
+      TZ: "${TZ:-UTC}"
+      RUN_OPTS: "${TVHEADEND_RUN_OPTS:---nosatip}"
+    ports:
+      - target: 9981
+        published: "9981"
+        protocol: tcp
+      - target: 9982
+        published: "9982"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: "${TVHEADEND_CONFIG_PATH:-/DATA/AppData/tvheadend/config}"
+        target: /config
+      - type: bind
+        source: "${TVHEADEND_RECORDINGS_PATH:-/DATA/Recordings/tvheadend}"
+        target: /recordings
+    networks:
+      - tvheadend
+    restart: unless-stopped
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O - -q http://localhost:9981/ping | grep -q PONG"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    x-casaos:
+      envs:
+        - container: PUID
+          description:
+            en_US: Host user ID owning TVHeadend files.
+        - container: PGID
+          description:
+            en_US: Host group ID owning TVHeadend files.
+        - container: TZ
+          description:
+            en_US: Timezone used by TVHeadend.
+        - container: RUN_OPTS
+          description:
+            en_US: TVHeadend arguments. Defaults to --nosatip for bridge mode; override only deliberately.
+      ports:
+        - container: "9981"
+          description:
+            en_US: TVHeadend web interface. First-run wizard is a trusted-LAN takeover surface.
+        - container: "9982"
+          description:
+            en_US: TVHeadend HTSP server port.
+      volumes:
+        - container: /config
+          description:
+            en_US: Persistent TVHeadend configuration.
+        - container: /recordings
+          description:
+            en_US: Persistent TV recording destination.
+
+networks:
+  tvheadend:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.tvheadend
+  main: tvheadend
+  index: /
+  port_map: "9981"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/tvheadend.png
+  title:
+    en_US: TVHeadend
+  tagline:
+    en_US: TV streaming and recording server
+  description:
+    en_US: >-
+      LinuxServer TVHeadend in bridge mode with persistent configuration and
+      recordings. The baseline omits DVB, GPU, privileged, and host-network
+      access. SAT>IP, HDHomeRun, IPTV multicast, and physical adapters need
+      deliberate opt-in networking and device changes.
+  tips:
+    before_install:
+      en_US: >-
+        The first-run wizard controls administrative access and is a trusted-
+        LAN takeover risk. Complete it only from a trusted network. Bridge
+        mode intentionally does not support multicast SAT>IP or HDHomeRun.
+  author: thundersquared
+  developer: LinuxServer.io
+  category: Media
+  architectures:
+    - amd64
+    - arm64
+  # TVHeadend tracks LinuxServer's moving latest channel; digest drives updates.
+  # renovate: datasource=docker depName=lscr.io/linuxserver/tvheadend
+  version: "latest"
+  update_at: "2026-09-12"
+  release_notes:
+    en_US: Pinned LinuxServer TVHeadend latest manifest; digest is the update signal.
+  website: https://www.tvheadend.org/
+  repo: https://github.com/linuxserver/docker-tvheadend
+  support: https://discourse.linuxserver.io/
+  docs: https://docs.linuxserver.io/images/docker-tvheadend/

@@ -1,0 +1,148 @@
+name: mosquitto
+services:
+  mosquitto-init:
+    # renovate: datasource=docker depName=eclipse-mosquitto
+    image: eclipse-mosquitto:2.1.2-alpine@sha256:6f8d8a947c506f8a2290ec65cd4bd2bc7cb4d43fb5f6271f861cb013e2ef9797
+    entrypoint: ["/bin/sh", "-ec"]
+    command: |
+      umask 077
+      while ! mkdir /mosquitto/config/.init-lock 2>/dev/null; do
+        sleep 1
+      done
+      trap 'rmdir /mosquitto/config/.init-lock 2>/dev/null || true' EXIT
+      if [ ! -f /mosquitto/config/mosquitto.conf ]; then
+        cat > /mosquitto/config/mosquitto.conf <<'EOF'
+      listener 1883
+      allow_anonymous false
+      password_file /mosquitto/config/passwordfile
+      persistence true
+      persistence_location /mosquitto/data/
+      log_dest stdout
+      EOF
+      fi
+      if [ ! -f /mosquitto/config/passwordfile ]; then
+        password="$(od -An -N48 -tx1 /dev/urandom | tr -d ' \n')"
+        mosquitto_passwd -b -c /mosquitto/config/passwordfile zima "$$password"
+        chmod 0600 /mosquitto/config/passwordfile
+        printf 'Generated Mosquitto credentials once: username=zima password=%s\n' "$$password"
+        : > /mosquitto/config/.credentials-announced
+      elif [ ! -f /mosquitto/config/.credentials-announced ]; then
+        printf '%s\n' 'Mosquitto password exists but was not announced. Reset passwordfile and restart init to generate a new credential.' >&2
+        : > /mosquitto/config/.credentials-announced
+      fi
+      trap 'exit 0' HUP INT TERM
+      tail -f /dev/null &
+      wait "$$!"
+    volumes:
+      - type: volume
+        source: mosquitto-config
+        target: /mosquitto/config
+      - type: volume
+        source: mosquitto-data
+        target: /mosquitto/data
+    networks:
+      - mosquitto
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      volumes:
+        - container: /mosquitto/config
+          description:
+            en_US: Persistent generated Mosquitto configuration and password hash.
+        - container: /mosquitto/data
+          description:
+            en_US: Persistent MQTT message database.
+
+  mosquitto:
+    # renovate: datasource=docker depName=eclipse-mosquitto
+    image: eclipse-mosquitto:2.1.2-alpine@sha256:6f8d8a947c506f8a2290ec65cd4bd2bc7cb4d43fb5f6271f861cb013e2ef9797
+    entrypoint: ["/bin/sh", "-ec"]
+    command: |
+      while [ ! -f /mosquitto/config/.credentials-announced ]; do
+        sleep 1
+      done
+      exec mosquitto -c /mosquitto/config/mosquitto.conf
+    depends_on:
+      mosquitto-init:
+        condition: service_started
+    ports:
+      - target: 1883
+        published: "1883"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: mosquitto-config
+        target: /mosquitto/config
+        read_only: true
+      - type: volume
+        source: mosquitto-data
+        target: /mosquitto/data
+    networks:
+      - mosquitto
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      ports:
+        - container: "1883"
+          description:
+            en_US: Authenticated MQTT TCP listener.
+      volumes:
+        - container: /mosquitto/config
+          description:
+            en_US: Read-only generated configuration and password hash.
+        - container: /mosquitto/data
+          description:
+            en_US: Persistent MQTT message database.
+
+networks:
+  mosquitto:
+    driver: bridge
+
+volumes:
+  mosquitto-config:
+  mosquitto-data:
+
+x-casaos:
+  id: com.thundersquared.mosquitto
+  main: mosquitto
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/mosquitto.png
+  title:
+    en_US: Eclipse Mosquitto
+  tagline:
+    en_US: Authenticated lightweight MQTT broker
+  description:
+    en_US: >-
+      Eclipse Mosquitto with anonymous access disabled, persistent storage,
+      and a race-safe first-start helper. The helper generates a cryptographic
+      password for user zima, stores only its hash, logs the plaintext once,
+      and never prints it again on restart.
+  tips:
+    before_install:
+      en_US: >-
+        Read the first-start logs once and store the generated password in a
+        password manager. To reset it, stop the stack, remove passwordfile and
+        .credentials-announced from the mosquitto-config volume, then start it.
+  author: thundersquared
+  developer: Eclipse Mosquitto
+  category: Networking
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=eclipse-mosquitto
+  version: "2.1.2-alpine"
+  update_at: "2026-06-22"
+  release_notes:
+    en_US: Pinned Eclipse Mosquitto 2.1.2 Alpine manifest.
+  website: https://mosquitto.org/
+  repo: https://github.com/eclipse-mosquitto/mosquitto
+  support: https://github.com/eclipse-mosquitto/mosquitto/discussions
+  docs: https://mosquitto.org/documentation/

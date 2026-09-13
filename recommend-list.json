@@ -1,0 +1,11 @@
+[
+  {
+    "appid": "com.thundersquared.homeassistant"
+  },
+  {
+    "appid": "com.thundersquared.zigbee2mqtt"
+  },
+  {
+    "appid": "com.thundersquared.mosquitto"
+  }
+]

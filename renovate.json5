@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "enabledManagers": ["docker-compose", "custom.regex", "github-actions"],
+  "dependencyDashboard": true,
+  "dependencyDashboardAutoclose": true,
+  "automerge": false,
+  "prCreation": "not-pending",
+  "internalChecksFilter": "strict",
+  "minimumReleaseAge": "5 days",
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "rebaseWhen": "conflicted",
+  "separateMajorMinor": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Apps/.+/docker-compose\\.yml$/"],
+      "matchStrings": [
+        "# renovate: datasource=docker depName=(?<depName>[^\\s]+)\\n\\s*version:\\s*[\\\"'](?<currentValue>[^\\\"']+)[\\\"']"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Group app image and x-casaos metadata updates",
+      "matchFileNames": ["Apps/**/docker-compose.yml"],
+      "matchDatasources": ["docker"],
+      "groupName": "app images and metadata"
+    },
+    {
+      "description": "Refresh moving container channels immediately",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["digest"],
+      "matchCurrentValue": "/^(latest|stable|edge|master|master-debian)$/",
+      "minimumReleaseAge": "0 days",
+      "addLabels": ["upstream-moving-tag"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "minimumReleaseAge": "0 days",
+    "prCreation": "immediate",
+    "labels": ["security"],
+    "automerge": false
+  }
+}

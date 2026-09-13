@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "store_id": "com.thundersquared.oss.zima-store",
+  "name": {
+    "en_US": "thundersquared Zima Store"
+  },
+  "description": {
+    "en_US": "Security-first ZimaOS v2 applications with pinned multi-architecture container images."
+  },
+  "maintainer": "thundersquared",
+  "url": "https://github.com/thundersquared/zima-store"
+}

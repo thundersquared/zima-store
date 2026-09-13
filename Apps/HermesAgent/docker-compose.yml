@@ -1,0 +1,149 @@
+name: hermes-agent
+services:
+  gateway:
+    # renovate: datasource=docker depName=nousresearch/hermes-agent
+    image: nousresearch/hermes-agent:v2026.9.11@sha256:9469b3e78b9545b6d576eb8887a95352e9a0ea83730eaf31431cf862ca1010e1
+    command: ["gateway", "run"]
+    environment:
+      HERMES_UID: "${HERMES_UID:-10000}"
+      HERMES_GID: "${HERMES_GID:-10000}"
+      HERMES_HOME: /opt/data
+    volumes:
+      - type: volume
+        source: hermes-data
+        target: /opt/data
+    networks:
+      - hermes
+    restart: unless-stopped
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: HERMES_UID
+          description:
+            en_US: UID used for files in the persistent Hermes data volume.
+        - container: HERMES_GID
+          description:
+            en_US: GID used for files in the persistent Hermes data volume.
+        - container: HERMES_HOME
+          description:
+            en_US: Persistent Hermes home directory inside the container.
+      volumes:
+        - container: /opt/data
+          description:
+            en_US: Persistent Hermes profiles, configuration, keys, and sessions.
+
+  dashboard:
+    # renovate: datasource=docker depName=nousresearch/hermes-agent
+    image: nousresearch/hermes-agent:v2026.9.11@sha256:9469b3e78b9545b6d576eb8887a95352e9a0ea83730eaf31431cf862ca1010e1
+    command: ["dashboard", "--host", "0.0.0.0", "--no-open", "--insecure"]
+    depends_on:
+      - gateway
+    environment:
+      HERMES_UID: "${HERMES_UID:-10000}"
+      HERMES_GID: "${HERMES_GID:-10000}"
+      HERMES_HOME: /opt/data
+      HERMES_DASHBOARD_INSECURE: "1"
+    ports:
+      - target: 9119
+        host_ip: 127.0.0.1
+        published: "${HERMES_DASHBOARD_PORT:-9119}"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: hermes-data
+        target: /opt/data
+    networks:
+      - hermes
+    restart: unless-stopped
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: HERMES_UID
+          description:
+            en_US: UID used for files in the persistent Hermes data volume.
+        - container: HERMES_GID
+          description:
+            en_US: GID used for files in the persistent Hermes data volume.
+        - container: HERMES_HOME
+          description:
+            en_US: Persistent Hermes home directory inside the container.
+        - container: HERMES_DASHBOARD_INSECURE
+          description:
+            en_US: Required only because access is restricted to host loopback. Do not publish the dashboard to LAN.
+        - container: HERMES_DASHBOARD_PORT
+          description:
+            en_US: Host loopback port for the Hermes dashboard.
+      ports:
+        - container: "9119"
+          description:
+            en_US: Dashboard port bound to host loopback only.
+      volumes:
+        - container: /opt/data
+          description:
+            en_US: Persistent Hermes profiles, configuration, keys, and sessions.
+
+networks:
+  hermes:
+    driver: bridge
+
+volumes:
+  hermes-data:
+
+x-casaos:
+  id: com.thundersquared.hermes-agent
+  main: dashboard
+  index: /
+  port_map: "9119"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/hermes-agent.png
+  title:
+    en_US: Hermes Agent
+  tagline:
+    en_US: Self-hosted AI agent gateway with loopback-only dashboard
+  description:
+    en_US: >-
+      Hermes Agent gateway and dashboard on a dedicated bridge network. The
+      default image entrypoint is preserved so s6 initialization, ownership
+      reconciliation, and supervision remain active. The dashboard listens on
+      the container interface but Docker publishes it only on host loopback.
+      The API server, Docker socket, and host filesystem are not enabled.
+  tips:
+    before_install:
+      en_US: >-
+        Configure provider credentials inside the Hermes data volume. Reach
+        the dashboard with SSH port forwarding, for example
+        ssh -L 9119:127.0.0.1:9119 user@zima-host. Do not change the bind to
+        0.0.0.0 on the host or expose port 9119 to LAN without authentication.
+  author: thundersquared
+  developer: Nous Research
+  category: AI
+  architectures:
+    - amd64
+    - arm64
+  # renovate: datasource=docker depName=nousresearch/hermes-agent
+  version: "v2026.9.11"
+  update_at: "2026-09-11"
+  release_notes:
+    en_US: Pinned Hermes Agent v2026.9.11 manifest.
+  website: https://hermes-agent.nousresearch.com/
+  repo: https://github.com/NousResearch/hermes-agent
+  support: https://github.com/NousResearch/hermes-agent/issues
+  docs: https://hermes-agent.nousresearch.com/docs/
