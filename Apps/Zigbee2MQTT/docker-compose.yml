@@ -4,13 +4,13 @@ services:
     # renovate: datasource=docker depName=koenkk/zigbee2mqtt
     image: koenkk/zigbee2mqtt:2.14.1@sha256:fef0de769dcd04c27b3a6d277b61046eb96284bdd4198dcb1687c3a01b3020f3
     environment:
-      TZ: "${TZ:-UTC}"
-      ZIGBEE2MQTT_CONFIG_MQTT_SERVER: "${ZIGBEE2MQTT_MQTT_SERVER:-mqtt://host.docker.internal:1883}"
-      ZIGBEE2MQTT_CONFIG_MQTT_USER: "${ZIGBEE2MQTT_MQTT_USER:-}"
-      ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD: "${ZIGBEE2MQTT_MQTT_PASSWORD:-}"
+      TZ: UTC
+      ZIGBEE2MQTT_CONFIG_MQTT_SERVER: mqtt://host.docker.internal:1883
+      ZIGBEE2MQTT_CONFIG_MQTT_USER: ""
+      ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD: ""
       ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED: "true"
       ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: "8080"
-      ZIGBEE2MQTT_CONFIG_SERIAL_PORT: "${ZIGBEE2MQTT_SERIAL_PORT:-}"
+      ZIGBEE2MQTT_CONFIG_SERIAL_PORT: ""
     extra_hosts:
       - host.docker.internal:host-gateway
     ports:

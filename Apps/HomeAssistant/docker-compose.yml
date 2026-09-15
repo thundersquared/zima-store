@@ -4,9 +4,9 @@ services:
     # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
     image: lscr.io/linuxserver/homeassistant:2026.9.2@sha256:76bf385d9f4ead87286db6e9966f5afc861a7cc59edd9493f06bc18810feb2f3
     environment:
-      PUID: "${HOME_ASSISTANT_PUID:-1000}"
-      PGID: "${HOME_ASSISTANT_PGID:-1000}"
-      TZ: "${TZ:-UTC}"
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
     network_mode: host
     volumes:
       - type: bind
@@ -77,8 +77,8 @@ x-casaos:
       LinuxServer Home Assistant 2026.9.1 with host networking for zeroconf,
       mDNS, UPnP, and Bluetooth discovery. Read-only host D-Bus access plus
       NET_ADMIN and NET_RAW enable Bluetooth integrations when host BlueZ is
-      configured. The persistent /config bind mount uses configurable
-      LinuxServer PUID and PGID ownership. Host networking exposes Home
+      configured. The persistent /config bind mount is owned by LinuxServer
+      uid/gid 1000. Host networking exposes Home
       Assistant and any configured listeners directly on the trusted LAN.
       Privileged mode, USB, serial devices, and broad device mounts remain
       disabled.
@@ -89,9 +89,10 @@ x-casaos:
         the trusted-LAN boundary and exposes all Home Assistant listeners
         directly on the host. Read-only /run/dbus plus NET_ADMIN and NET_RAW
         enable Bluetooth when host BlueZ is configured. Keep this app on a
-        trusted LAN. Set PUID and PGID to the user and group owning the
-        configured /config directory. USB, serial, and other device mappings
-        remain disabled; add them only after review.
+        trusted LAN. Home Assistant runs as uid/gid 1000; chown the
+        configured /config directory to 1000:1000 on the host if it isn't
+        already. USB, serial, and other device mappings remain disabled;
+        add them only after review.
   author: thundersquared
   developer: LinuxServer.io
   category: Home

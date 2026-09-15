@@ -4,9 +4,9 @@ services:
     # renovate: datasource=docker depName=lscr.io/linuxserver/jellyfin
     image: lscr.io/linuxserver/jellyfin:10.11.11@sha256:438e44330078e6b1a810fdec9dc0f4773e6595edb137c5eb4417a516da4c7f0e
     environment:
-      PUID: "${JELLYFIN_PUID:-1000}"
-      PGID: "${JELLYFIN_PGID:-1000}"
-      TZ: "${TZ:-Europe/Bucharest}"
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Bucharest
     ports:
       - target: 8096
         published: "8097"
@@ -92,8 +92,8 @@ x-casaos:
     en_US: Personal media server for movies, shows, music, and photos
   description:
     en_US: >-
-      LinuxServer Jellyfin 10.11.10 in bridge mode with configurable PUID and
-      PGID ownership for persistent configuration. HTTP is published on host
+      LinuxServer Jellyfin 10.11.10 in bridge mode, running as uid/gid 1000
+      for persistent configuration ownership. HTTP is published on host
       port 8097. Optional HTTPS uses 8921, client discovery uses UDP 7359, and
       DLNA/SSDP discovery uses UDP 1900. The /DATA/Media library is read-only.
       Discovery ports are intended for trusted LANs. Hardware acceleration is
@@ -103,8 +103,9 @@ x-casaos:
   tips:
     before_install:
       en_US: >-
-        Set JELLYFIN_PUID and JELLYFIN_PGID to the user and group owning
-        /DATA/AppData/jellyfin/config. HTTP is available on port 8097. Port
+        Jellyfin runs as uid/gid 1000; chown
+        /DATA/AppData/jellyfin/config to 1000:1000 on the host if it isn't
+        already. HTTP is available on port 8097. Port
         8921 remains inactive until certificates and Jellyfin HTTPS settings
         are configured. UDP 7359 and 1900 provide client and DLNA/SSDP
         discovery; keep them on a trusted LAN and ensure UDP 1900 has no host

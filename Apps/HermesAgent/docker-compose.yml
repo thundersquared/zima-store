@@ -5,8 +5,8 @@ services:
     image: nousresearch/hermes-agent:v2026.9.11@sha256:9469b3e78b9545b6d576eb8887a95352e9a0ea83730eaf31431cf862ca1010e1
     command: ["gateway", "run"]
     environment:
-      HERMES_UID: "${HERMES_UID:-10000}"
-      HERMES_GID: "${HERMES_GID:-10000}"
+      HERMES_UID: "10000"
+      HERMES_GID: "10000"
       HERMES_HOME: /opt/data
     volumes:
       - type: bind
@@ -39,23 +39,43 @@ services:
       volumes:
         - container: /opt/data
           description:
-            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent on the host.
+            en_US: Persistent Hermes profiles, configuration, keys, sessions, and generated dashboard credentials. Stored at /DATA/AppData/hermes-agent on the host.
 
   dashboard:
     # renovate: datasource=docker depName=nousresearch/hermes-agent
     image: nousresearch/hermes-agent:v2026.9.11@sha256:9469b3e78b9545b6d576eb8887a95352e9a0ea83730eaf31431cf862ca1010e1
-    command: ["dashboard", "--host", "0.0.0.0", "--no-open", "--insecure"]
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        umask 077
+        creds=/opt/data/.dashboard-credentials
+        if [ ! -f "$$creds" ]; then
+          password="$$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          secret="$$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+          printf 'HERMES_DASHBOARD_BASIC_AUTH_USERNAME=zima\nHERMES_DASHBOARD_BASIC_AUTH_PASSWORD=%s\nHERMES_DASHBOARD_BASIC_AUTH_SECRET=%s\n' "$$password" "$$secret" > "$$creds"
+          chmod 0600 "$$creds"
+        fi
+        if [ ! -f /opt/data/.dashboard-credentials-announced ]; then
+          . "$$creds"
+          printf 'Generated Hermes dashboard credentials once: username=%s password=%s\n' "$$HERMES_DASHBOARD_BASIC_AUTH_USERNAME" "$$HERMES_DASHBOARD_BASIC_AUTH_PASSWORD"
+          : > /opt/data/.dashboard-credentials-announced
+        fi
+        set -a
+        . "$$creds"
+        set +a
+        . /opt/hermes/.venv/bin/activate
+        exec hermes dashboard --host 0.0.0.0 --no-open
     depends_on:
       - gateway
     environment:
-      HERMES_UID: "${HERMES_UID:-10000}"
-      HERMES_GID: "${HERMES_GID:-10000}"
+      HERMES_UID: "10000"
+      HERMES_GID: "10000"
       HERMES_HOME: /opt/data
-      HERMES_DASHBOARD_INSECURE: "1"
     ports:
       - target: 9119
         host_ip: 127.0.0.1
-        published: "${HERMES_DASHBOARD_PORT:-9119}"
+        published: "9119"
         protocol: tcp
     volumes:
       - type: bind
@@ -85,9 +105,6 @@ services:
         - container: HERMES_HOME
           description:
             en_US: Persistent Hermes home directory inside the container.
-        - container: HERMES_DASHBOARD_INSECURE
-          description:
-            en_US: Required only because access is restricted to host loopback. Do not publish the dashboard to LAN.
         - container: HERMES_DASHBOARD_PORT
           description:
             en_US: Host loopback port for the Hermes dashboard.
@@ -98,7 +115,7 @@ services:
       volumes:
         - container: /opt/data
           description:
-            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent on the host.
+            en_US: Persistent Hermes profiles, configuration, keys, sessions, and generated dashboard credentials. Stored at /DATA/AppData/hermes-agent on the host.
 
 networks:
   hermes:
@@ -121,14 +138,21 @@ x-casaos:
       default image entrypoint is preserved so s6 initialization, ownership
       reconciliation, and supervision remain active. The dashboard listens on
       the container interface but Docker publishes it only on host loopback.
-      The API server, Docker socket, and host filesystem are not enabled.
+      The API server, Docker socket, and host filesystem are not enabled. A
+      one-time init step generates a random dashboard username and password
+      and logs them once on first start; the dashboard's own auth gate
+      requires them before it will accept a non-loopback bind.
   tips:
     before_install:
       en_US: >-
-        Configure provider credentials inside the Hermes data volume. Reach
-        the dashboard with SSH port forwarding, for example
+        Read the dashboard container's first-start logs once for the
+        generated username and password, and store them in a password
+        manager. Reach the dashboard with SSH port forwarding, for example
         ssh -L 9119:127.0.0.1:9119 user@zima-host. Do not change the bind to
-        0.0.0.0 on the host or expose port 9119 to LAN without authentication.
+        0.0.0.0 on the host or expose port 9119 to LAN without a reverse
+        proxy. To reset the password, stop the stack, remove
+        .dashboard-credentials and .dashboard-credentials-announced from
+        /DATA/AppData/hermes-agent, then start it again.
   author: thundersquared
   developer: Nous Research
   category: AI
