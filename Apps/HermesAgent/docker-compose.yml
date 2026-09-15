@@ -49,20 +49,40 @@ services:
       - -ec
       - |
         umask 077
-        creds=/opt/data/.dashboard-credentials
-        if [ ! -f "$$creds" ]; then
-          password="$$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')"
-          secret="$$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
-          printf 'HERMES_DASHBOARD_BASIC_AUTH_USERNAME=zima\nHERMES_DASHBOARD_BASIC_AUTH_PASSWORD=%s\nHERMES_DASHBOARD_BASIC_AUTH_SECRET=%s\n' "$$password" "$$secret" > "$$creds"
-          chmod 0600 "$$creds"
-        fi
-        if [ ! -f /opt/data/.dashboard-credentials-announced ]; then
-          . "$$creds"
-          printf 'Generated Hermes dashboard credentials once: username=%s password=%s\n' "$$HERMES_DASHBOARD_BASIC_AUTH_USERNAME" "$$HERMES_DASHBOARD_BASIC_AUTH_PASSWORD"
-          : > /opt/data/.dashboard-credentials-announced
-        fi
+        python3 - <<'PY'
+        import os
+        import secrets
+
+        creds_path = "/opt/data/.dashboard-credentials"
+        announced_path = "/opt/data/.dashboard-credentials-announced"
+
+        if not os.path.exists(creds_path):
+            password = secrets.token_urlsafe(24)
+            auth_secret = secrets.token_urlsafe(32)
+            with open(creds_path, "w") as creds_file:
+                creds_file.write(
+                    "HERMES_DASHBOARD_BASIC_AUTH_USERNAME=zima\n"
+                    "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=" + password + "\n"
+                    "HERMES_DASHBOARD_BASIC_AUTH_SECRET=" + auth_secret + "\n"
+                )
+            os.chmod(creds_path, 0o600)
+
+        if not os.path.exists(announced_path):
+            env = {}
+            with open(creds_path) as creds_file:
+                for line in creds_file:
+                    key, _, value = line.strip().partition("=")
+                    env[key] = value
+            print(
+                "Generated Hermes dashboard credentials once: username="
+                + env["HERMES_DASHBOARD_BASIC_AUTH_USERNAME"]
+                + " password="
+                + env["HERMES_DASHBOARD_BASIC_AUTH_PASSWORD"]
+            )
+            open(announced_path, "w").close()
+        PY
         set -a
-        . "$$creds"
+        . /opt/data/.dashboard-credentials
         set +a
         . /opt/hermes/.venv/bin/activate
         exec hermes dashboard --host 0.0.0.0 --no-open
