@@ -34,11 +34,11 @@ services:
       tail -f /dev/null &
       wait "$$!"
     volumes:
-      - type: volume
-        source: mosquitto-config
+      - type: bind
+        source: /DATA/AppData/mosquitto/config
         target: /mosquitto/config
-      - type: volume
-        source: mosquitto-data
+      - type: bind
+        source: /DATA/AppData/mosquitto/data
         target: /mosquitto/data
     networks:
       - mosquitto
@@ -51,10 +51,10 @@ services:
       volumes:
         - container: /mosquitto/config
           description:
-            en_US: Persistent generated Mosquitto configuration and password hash.
+            en_US: Persistent generated Mosquitto configuration and password hash. Stored at /DATA/AppData/mosquitto/config on the host.
         - container: /mosquitto/data
           description:
-            en_US: Persistent MQTT message database.
+            en_US: Persistent MQTT message database. Stored at /DATA/AppData/mosquitto/data on the host.
 
   mosquitto:
     # renovate: datasource=docker depName=eclipse-mosquitto
@@ -73,12 +73,12 @@ services:
         published: "1883"
         protocol: tcp
     volumes:
-      - type: volume
-        source: mosquitto-config
+      - type: bind
+        source: /DATA/AppData/mosquitto/config
         target: /mosquitto/config
         read_only: true
-      - type: volume
-        source: mosquitto-data
+      - type: bind
+        source: /DATA/AppData/mosquitto/data
         target: /mosquitto/data
     networks:
       - mosquitto
@@ -98,22 +98,19 @@ services:
       volumes:
         - container: /mosquitto/config
           description:
-            en_US: Read-only generated configuration and password hash.
+            en_US: Read-only generated configuration and password hash. Stored at /DATA/AppData/mosquitto/config on the host.
         - container: /mosquitto/data
           description:
-            en_US: Persistent MQTT message database.
+            en_US: Persistent MQTT message database. Stored at /DATA/AppData/mosquitto/data on the host.
 
 networks:
   mosquitto:
     driver: bridge
 
-volumes:
-  mosquitto-config:
-  mosquitto-data:
-
 x-casaos:
   id: com.thundersquared.mosquitto
   main: mosquitto
+  port_map: "1883"
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/mosquitto.svg
   title:
     en_US: Eclipse Mosquitto
@@ -130,7 +127,7 @@ x-casaos:
       en_US: >-
         Read the first-start logs once and store the generated password in a
         password manager. To reset it, stop the stack, remove passwordfile and
-        .credentials-announced from the mosquitto-config volume, then start it.
+        .credentials-announced from /DATA/AppData/mosquitto/config, then start it.
   author: thundersquared
   developer: Eclipse Mosquitto
   category: Networking

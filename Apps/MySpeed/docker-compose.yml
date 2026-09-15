@@ -11,7 +11,7 @@ services:
         protocol: tcp
     volumes:
       - type: bind
-        source: "${MYSPEED_DATA_PATH:-/DATA/AppData/myspeed/data}"
+        source: /DATA/AppData/myspeed/data
         target: /myspeed/data
     network_mode: bridge
     restart: unless-stopped
@@ -34,7 +34,7 @@ services:
       volumes:
         - container: /myspeed/data
           description:
-            en_US: Persistent MySpeed history, SQLite database, settings, password state, node configuration, and integration credentials. Defaults to /DATA/AppData/myspeed/data on the host.
+            en_US: Persistent MySpeed history, SQLite database, settings, password state, node configuration, and integration credentials. Stored at /DATA/AppData/myspeed/data on the host.
 
 x-casaos:
   id: com.thundersquared.myspeed

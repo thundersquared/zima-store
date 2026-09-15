@@ -9,8 +9,8 @@ services:
       HERMES_GID: "${HERMES_GID:-10000}"
       HERMES_HOME: /opt/data
     volumes:
-      - type: volume
-        source: hermes-data
+      - type: bind
+        source: /DATA/AppData/hermes-agent/data
         target: /opt/data
     networks:
       - hermes
@@ -39,7 +39,7 @@ services:
       volumes:
         - container: /opt/data
           description:
-            en_US: Persistent Hermes profiles, configuration, keys, and sessions.
+            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent/data on the host.
 
   dashboard:
     # renovate: datasource=docker depName=nousresearch/hermes-agent
@@ -58,8 +58,8 @@ services:
         published: "${HERMES_DASHBOARD_PORT:-9119}"
         protocol: tcp
     volumes:
-      - type: volume
-        source: hermes-data
+      - type: bind
+        source: /DATA/AppData/hermes-agent/data
         target: /opt/data
     networks:
       - hermes
@@ -98,14 +98,11 @@ services:
       volumes:
         - container: /opt/data
           description:
-            en_US: Persistent Hermes profiles, configuration, keys, and sessions.
+            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent/data on the host.
 
 networks:
   hermes:
     driver: bridge
-
-volumes:
-  hermes-data:
 
 x-casaos:
   id: com.thundersquared.hermes-agent

@@ -17,10 +17,10 @@ services:
         protocol: tcp
     volumes:
       - type: bind
-        source: "${TVHEADEND_CONFIG_PATH:-/DATA/AppData/tvheadend/config}"
+        source: /DATA/AppData/tvheadend/config
         target: /config
       - type: bind
-        source: "${TVHEADEND_RECORDINGS_PATH:-/DATA/Recordings/tvheadend}"
+        source: /DATA/Recordings/tvheadend
         target: /recordings
     networks:
       - tvheadend

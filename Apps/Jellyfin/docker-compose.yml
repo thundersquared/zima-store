@@ -22,10 +22,10 @@ services:
         protocol: udp
     volumes:
       - type: bind
-        source: "${JELLYFIN_CONFIG_PATH:-/DATA/AppData/jellyfin/config}"
+        source: /DATA/AppData/jellyfin/config
         target: /config
       - type: bind
-        source: "${JELLYFIN_MEDIA_PATH:-/DATA/Media}"
+        source: /DATA/Media
         target: /DATA/Media
         read_only: true
     network_mode: bridge

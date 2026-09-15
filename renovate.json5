@@ -23,7 +23,7 @@
         "# renovate: datasource=docker depName=(?<depName>[^\\s]+)\\n\\s*version:\\s*[\\\"'](?<currentValue>[^\\\"']+)[\\\"']"
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "loose"
+      "versioningTemplate": "docker"
     }
   ],
   "packageRules": [

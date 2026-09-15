@@ -19,7 +19,7 @@ services:
         protocol: tcp
     volumes:
       - type: bind
-        source: "${ZIGBEE2MQTT_DATA_PATH:-/DATA/AppData/zigbee2mqtt/data}"
+        source: /DATA/AppData/zigbee2mqtt/data
         target: /app/data
     networks:
       - zigbee2mqtt

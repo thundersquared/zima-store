@@ -10,10 +10,10 @@ services:
     network_mode: host
     volumes:
       - type: bind
-        source: "${HOME_ASSISTANT_CONFIG_PATH:-/DATA/AppData/homeassistant/config}"
+        source: /DATA/AppData/homeassistant/config
         target: /config
       - type: bind
-        source: "${HOME_ASSISTANT_DBUS_PATH:-/run/dbus}"
+        source: /run/dbus
         target: /run/dbus
         read_only: true
     deploy:
@@ -88,8 +88,7 @@ x-casaos:
         Host networking enables zeroconf, mDNS, and UPnP discovery but expands
         the trusted-LAN boundary and exposes all Home Assistant listeners
         directly on the host. Read-only /run/dbus plus NET_ADMIN and NET_RAW
-        enable Bluetooth when host BlueZ is configured. Override the source
-        path with HOME_ASSISTANT_DBUS_PATH when needed. Keep this app on a
+        enable Bluetooth when host BlueZ is configured. Keep this app on a
         trusted LAN. Set PUID and PGID to the user and group owning the
         configured /config directory. USB, serial, and other device mappings
         remain disabled; add them only after review.

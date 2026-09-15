@@ -2,7 +2,7 @@ name: tailscale
 services:
   tailscale:
     # renovate: datasource=docker depName=ghcr.io/tailscale/tailscale
-    image: ghcr.io/tailscale/tailscale:stable@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
+    image: ghcr.io/tailscale/tailscale:v1.102.3@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
     environment:
       TS_AUTH_ONCE: "true"
       TS_STATE_DIR: /var/lib/tailscale
@@ -16,8 +16,8 @@ services:
     cap_drop:
       - ALL
     volumes:
-      - type: volume
-        source: tailscale-state
+      - type: bind
+        source: /DATA/AppData/tailscale/state
         target: /var/lib/tailscale
     restart: unless-stopped
     security_opt:
@@ -36,14 +36,11 @@ services:
       volumes:
         - container: /var/lib/tailscale
           description:
-            en_US: Persistent node identity and state.
+            en_US: Persistent node identity and state. Stored at /DATA/AppData/tailscale/state on the host.
       devices:
         - container: /dev/net/tun
           description:
             en_US: Kernel TUN device required for kernel-mode networking.
-
-volumes:
-  tailscale-state:
 
 x-casaos:
   id: com.thundersquared.tailscale
@@ -72,9 +69,9 @@ x-casaos:
     - amd64
     - arm64
   # renovate: datasource=docker depName=ghcr.io/tailscale/tailscale
-  version: "stable"
+  version: "v1.102.3"
   release_notes:
-    en_US: Pinned Tailscale stable manifest.
+    en_US: Pinned Tailscale v1.102.3 manifest.
   website: https://tailscale.com/
   repo: https://github.com/tailscale/tailscale
   support: https://tailscale.com/kb/
