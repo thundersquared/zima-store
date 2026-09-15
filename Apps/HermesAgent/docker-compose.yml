@@ -10,7 +10,7 @@ services:
       HERMES_HOME: /opt/data
     volumes:
       - type: bind
-        source: /DATA/AppData/hermes-agent/data
+        source: /DATA/AppData/hermes-agent
         target: /opt/data
     networks:
       - hermes
@@ -39,7 +39,7 @@ services:
       volumes:
         - container: /opt/data
           description:
-            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent/data on the host.
+            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent on the host.
 
   dashboard:
     # renovate: datasource=docker depName=nousresearch/hermes-agent
@@ -59,7 +59,7 @@ services:
         protocol: tcp
     volumes:
       - type: bind
-        source: /DATA/AppData/hermes-agent/data
+        source: /DATA/AppData/hermes-agent
         target: /opt/data
     networks:
       - hermes
@@ -98,7 +98,7 @@ services:
       volumes:
         - container: /opt/data
           description:
-            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent/data on the host.
+            en_US: Persistent Hermes profiles, configuration, keys, and sessions. Stored at /DATA/AppData/hermes-agent on the host.
 
 networks:
   hermes:
