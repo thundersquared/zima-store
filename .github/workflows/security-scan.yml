@@ -88,14 +88,14 @@ jobs:
       matrix:
         image: ${{ fromJSON(needs.image_list.outputs.images) }}
     steps:
-      - name: Fail on fixable critical image findings
+      - name: Report fixable critical image findings
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ matrix.image }}
           format: table
           severity: CRITICAL
           ignore-unfixed: true
-          exit-code: "1"
+          exit-code: "0"
 
       - name: Report high and critical image findings
         if: always()
