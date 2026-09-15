@@ -1,8 +1,8 @@
 name: jellyfin
 services:
   jellyfin:
-    # renovate: datasource=docker depName=linuxserver/jellyfin
-    image: linuxserver/jellyfin:10.11.11@sha256:438e44330078e6b1a810fdec9dc0f4773e6595edb137c5eb4417a516da4c7f0e
+    # renovate: datasource=docker depName=lscr.io/linuxserver/jellyfin
+    image: lscr.io/linuxserver/jellyfin:10.11.11@sha256:438e44330078e6b1a810fdec9dc0f4773e6595edb137c5eb4417a516da4c7f0e
     environment:
       PUID: "${JELLYFIN_PUID:-1000}"
       PGID: "${JELLYFIN_PGID:-1000}"
@@ -117,7 +117,7 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  # renovate: datasource=docker depName=linuxserver/jellyfin
+  # renovate: datasource=docker depName=lscr.io/linuxserver/jellyfin
   version: "10.11.11"
   release_notes:
     en_US: Pinned LinuxServer Jellyfin 10.11.10 manifest.
