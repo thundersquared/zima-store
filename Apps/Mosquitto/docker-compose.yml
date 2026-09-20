@@ -92,16 +92,12 @@ services:
     # renovate: datasource=docker depName=eclipse-mosquitto
     image: eclipse-mosquitto:2.1.2-alpine@sha256:6f8d8a947c506f8a2290ec65cd4bd2bc7cb4d43fb5f6271f861cb013e2ef9797
     entrypoint: ["/bin/sh", "-ec"]
-    # Script must stay the sole element of the command list; see mosquitto-init.
+    # Config is owned by the init container; depends_on sequences container
+    # starts, and restart: unless-stopped covers the sub-second race where the
+    # init container has not written mosquitto.conf yet on a fresh install.
+    # Executed as root so mosquitto can read the 0600 init-generated files.
     command:
       - |
-        python3 - <<'PY'
-        import os
-        import time
-
-        while not os.path.exists("/mosquitto/config/.credentials-announced"):
-            time.sleep(1)
-        PY
         exec mosquitto -c /mosquitto/config/mosquitto.conf
     depends_on:
       mosquitto-init:
