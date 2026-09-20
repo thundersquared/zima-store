@@ -39,7 +39,6 @@ services:
           echo 'Mosquitto password exists but was not announced. Reset passwordfile and restart init to generate a new credential.' >&2
           : > /mosquitto/config/.credentials-announced
         fi
-        tail -f /dev/null
     volumes:
       - type: bind
         source: /DATA/AppData/mosquitto/config
@@ -49,7 +48,7 @@ services:
         target: /mosquitto/data
     networks:
       - mosquitto
-    restart: unless-stopped
+    restart: "no"
     # DAC_OVERRIDE lets root create the init files even if CasaOS owns the
     # persistent directory with a different UID.
     cap_add:
