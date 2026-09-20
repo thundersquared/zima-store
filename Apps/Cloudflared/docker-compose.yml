@@ -6,8 +6,6 @@ services:
     command: ["tunnel", "--no-autoupdate", "run"]
     environment:
       TUNNEL_TOKEN: ""
-    networks:
-      - cloudflared
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -22,10 +20,6 @@ services:
           description:
             en_US: Cloudflare tunnel token. Required to start the tunnel.
 
-networks:
-  cloudflared:
-    driver: bridge
-
 x-casaos:
   id: com.thundersquared.cloudflared
   main: cloudflared
@@ -36,7 +30,7 @@ x-casaos:
     en_US: Connect a managed Cloudflare Tunnel without opening inbound ports
   description:
     en_US: >-
-      Runs the official Cloudflare cloudflared client in a bridge network. The
+      Runs the official Cloudflare cloudflared client. The
       tunnel token is supplied during install and is never stored in this
       repository. No host networking or inbound port is required.
   tips:
