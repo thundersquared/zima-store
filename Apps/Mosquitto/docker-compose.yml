@@ -91,12 +91,6 @@ services:
   mosquitto:
     # renovate: datasource=docker depName=eclipse-mosquitto
     image: eclipse-mosquitto:2.1.2-alpine@sha256:6f8d8a947c506f8a2290ec65cd4bd2bc7cb4d43fb5f6271f861cb013e2ef9797
-    # Default image entrypoint/CMD is kept: CMD already points at
-    # /mosquitto/config/mosquitto.conf, and the entrypoint chowns the
-    # persistence volume so the broker can write it after its privilege drop.
-    # depends_on sequences container starts; restart: unless-stopped covers
-    # the sub-second fresh-install race where init has not written the
-    # config yet.
     depends_on:
       mosquitto-init:
         condition: service_started
