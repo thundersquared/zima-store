@@ -6,64 +6,39 @@ services:
     entrypoint: ["/bin/sh", "-ec"]
     # Script must stay the sole element of the command list; CasaOS splits a
     # multiline command scalar into whitespace argv and only the first token
-    # survives as the shell script. Shell variables are avoided so CasaOS
-    # cannot interpolate them.
+    # survives as the shell script. No shell variables or command substitution
+    # are used so CasaOS cannot interpolate them; plain shell because the
+    # image ships no python3.
     command:
       - |
         umask 077
+        while ! mkdir /mosquitto/config/.init-lock 2>/dev/null; do
+          sleep 1
+        done
         trap 'rmdir /mosquitto/config/.init-lock 2>/dev/null || true' EXIT
-        python3 - <<'PY'
-        import os
-        import secrets
-        import subprocess
-        import sys
-        import time
-
-        config_path = "/mosquitto/config/mosquitto.conf"
-        passwd_path = "/mosquitto/config/passwordfile"
-        announced_path = "/mosquitto/config/.credentials-announced"
-        lock_path = "/mosquitto/config/.init-lock"
-
-        while True:
-            try:
-                os.mkdir(lock_path)
-                break
-            except FileExistsError:
-                time.sleep(1)
-
-        if not os.path.exists(config_path):
-            with open(config_path, "w") as config_file:
-                config_file.write(
-                    "listener 1883\n"
-                    "allow_anonymous false\n"
-                    "password_file /mosquitto/config/passwordfile\n"
-                    "persistence true\n"
-                    "persistence_location /mosquitto/data/\n"
-                    "log_dest stdout\n"
-                )
-
-        if not os.path.exists(passwd_path):
-            password = secrets.token_hex(32)
-            subprocess.run(
-                ["mosquitto_passwd", "-b", "-c", passwd_path, "zima", password],
-                check=True,
-            )
-            os.chmod(passwd_path, 0o600)
-            print(
-                "Generated Mosquitto credentials once: username=zima password="
-                + password,
-                flush=True,
-            )
-            open(announced_path, "w").close()
-        elif not os.path.exists(announced_path):
-            print(
-                "Mosquitto password exists but was not announced. Reset "
-                "passwordfile and restart init to generate a new credential.",
-                file=sys.stderr,
-                flush=True,
-            )
-            open(announced_path, "w").close()
-        PY
+        if [ ! -f /mosquitto/config/mosquitto.conf ]; then
+          cat > /mosquitto/config/mosquitto.conf <<'EOF'
+        listener 1883
+        allow_anonymous false
+        password_file /mosquitto/config/passwordfile
+        persistence true
+        persistence_location /mosquitto/data/
+        log_dest stdout
+        EOF
+        fi
+        if [ ! -f /mosquitto/config/passwordfile ]; then
+          od -An -N48 -tx1 /dev/urandom | tr -d ' \n' > /mosquitto/config/.credentials-plain
+          xargs mosquitto_passwd -b -c /mosquitto/config/passwordfile zima < /mosquitto/config/.credentials-plain
+          chmod 0600 /mosquitto/config/passwordfile
+          printf 'Generated Mosquitto credentials once: username=zima password='
+          cat /mosquitto/config/.credentials-plain
+          printf '\n'
+          rm -f /mosquitto/config/.credentials-plain
+          : > /mosquitto/config/.credentials-announced
+        elif [ ! -f /mosquitto/config/.credentials-announced ]; then
+          echo 'Mosquitto password exists but was not announced. Reset passwordfile and restart init to generate a new credential.' >&2
+          : > /mosquitto/config/.credentials-announced
+        fi
         tail -f /dev/null
     volumes:
       - type: bind
@@ -75,6 +50,10 @@ services:
     networks:
       - mosquitto
     restart: unless-stopped
+    # DAC_OVERRIDE lets root create the init files even if CasaOS owns the
+    # persistent directory with a different UID.
+    cap_add:
+      - DAC_OVERRIDE
     cap_drop:
       - ALL
     security_opt:
@@ -112,6 +91,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    # CHOWN for the image entrypoint's persistence-volume chown, SETGID/SETUID
+    # for mosquitto's own privilege drop to the mosquitto user.
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
     cap_drop:
       - ALL
     security_opt:
