@@ -4,35 +4,67 @@ services:
     # renovate: datasource=docker depName=eclipse-mosquitto
     image: eclipse-mosquitto:2.1.2-alpine@sha256:6f8d8a947c506f8a2290ec65cd4bd2bc7cb4d43fb5f6271f861cb013e2ef9797
     entrypoint: ["/bin/sh", "-ec"]
-    command: |
-      umask 077
-      while ! mkdir /mosquitto/config/.init-lock 2>/dev/null; do
-        sleep 1
-      done
-      trap 'rmdir /mosquitto/config/.init-lock 2>/dev/null || true' EXIT
-      if [ ! -f /mosquitto/config/mosquitto.conf ]; then
-        cat > /mosquitto/config/mosquitto.conf <<'EOF'
-      listener 1883
-      allow_anonymous false
-      password_file /mosquitto/config/passwordfile
-      persistence true
-      persistence_location /mosquitto/data/
-      log_dest stdout
-      EOF
-      fi
-      if [ ! -f /mosquitto/config/passwordfile ]; then
-        password="$(od -An -N48 -tx1 /dev/urandom | tr -d ' \n')"
-        mosquitto_passwd -b -c /mosquitto/config/passwordfile zima "$$password"
-        chmod 0600 /mosquitto/config/passwordfile
-        printf 'Generated Mosquitto credentials once: username=zima password=%s\n' "$$password"
-        : > /mosquitto/config/.credentials-announced
-      elif [ ! -f /mosquitto/config/.credentials-announced ]; then
-        printf '%s\n' 'Mosquitto password exists but was not announced. Reset passwordfile and restart init to generate a new credential.' >&2
-        : > /mosquitto/config/.credentials-announced
-      fi
-      trap 'exit 0' HUP INT TERM
-      tail -f /dev/null &
-      wait "$$!"
+    # Script must stay the sole element of the command list; CasaOS splits a
+    # multiline command scalar into whitespace argv and only the first token
+    # survives as the shell script. Shell variables are avoided so CasaOS
+    # cannot interpolate them.
+    command:
+      - |
+        umask 077
+        trap 'rmdir /mosquitto/config/.init-lock 2>/dev/null || true' EXIT
+        python3 - <<'PY'
+        import os
+        import secrets
+        import subprocess
+        import sys
+        import time
+
+        config_path = "/mosquitto/config/mosquitto.conf"
+        passwd_path = "/mosquitto/config/passwordfile"
+        announced_path = "/mosquitto/config/.credentials-announced"
+        lock_path = "/mosquitto/config/.init-lock"
+
+        while True:
+            try:
+                os.mkdir(lock_path)
+                break
+            except FileExistsError:
+                time.sleep(1)
+
+        if not os.path.exists(config_path):
+            with open(config_path, "w") as config_file:
+                config_file.write(
+                    "listener 1883\n"
+                    "allow_anonymous false\n"
+                    "password_file /mosquitto/config/passwordfile\n"
+                    "persistence true\n"
+                    "persistence_location /mosquitto/data/\n"
+                    "log_dest stdout\n"
+                )
+
+        if not os.path.exists(passwd_path):
+            password = secrets.token_hex(32)
+            subprocess.run(
+                ["mosquitto_passwd", "-b", "-c", passwd_path, "zima", password],
+                check=True,
+            )
+            os.chmod(passwd_path, 0o600)
+            print(
+                "Generated Mosquitto credentials once: username=zima password="
+                + password,
+                flush=True,
+            )
+            open(announced_path, "w").close()
+        elif not os.path.exists(announced_path):
+            print(
+                "Mosquitto password exists but was not announced. Reset "
+                "passwordfile and restart init to generate a new credential.",
+                file=sys.stderr,
+                flush=True,
+            )
+            open(announced_path, "w").close()
+        PY
+        tail -f /dev/null
     volumes:
       - type: bind
         source: /DATA/AppData/mosquitto/config
@@ -60,11 +92,17 @@ services:
     # renovate: datasource=docker depName=eclipse-mosquitto
     image: eclipse-mosquitto:2.1.2-alpine@sha256:6f8d8a947c506f8a2290ec65cd4bd2bc7cb4d43fb5f6271f861cb013e2ef9797
     entrypoint: ["/bin/sh", "-ec"]
-    command: |
-      while [ ! -f /mosquitto/config/.credentials-announced ]; do
-        sleep 1
-      done
-      exec mosquitto -c /mosquitto/config/mosquitto.conf
+    # Script must stay the sole element of the command list; see mosquitto-init.
+    command:
+      - |
+        python3 - <<'PY'
+        import os
+        import time
+
+        while not os.path.exists("/mosquitto/config/.credentials-announced"):
+            time.sleep(1)
+        PY
+        exec mosquitto -c /mosquitto/config/mosquitto.conf
     depends_on:
       mosquitto-init:
         condition: service_started
