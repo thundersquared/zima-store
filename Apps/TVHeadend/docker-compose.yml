@@ -17,11 +17,14 @@ services:
         protocol: tcp
     volumes:
       - type: bind
-        source: /DATA/AppData/tvheadend/config
+        source: /DATA/AppData/tvheadend
         target: /config
       - type: bind
         source: /DATA/Recordings/tvheadend
         target: /recordings
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/dvb:/dev/dvb
     networks:
       - tvheadend
     restart: unless-stopped
@@ -69,6 +72,13 @@ services:
         - container: /recordings
           description:
             en_US: Persistent TV recording destination.
+      devices:
+        - container: /dev/dri
+          description:
+            en_US: GPU device for hardware video transcoding.
+        - container: /dev/dvb
+          description:
+            en_US: DVB tuner adapters for physical TV reception.
 
 networks:
   tvheadend:
@@ -88,9 +98,9 @@ x-casaos:
   description:
     en_US: >-
       LinuxServer TVHeadend in bridge mode with persistent configuration and
-      recordings. The baseline omits DVB, GPU, privileged, and host-network
-      access. SAT>IP, HDHomeRun, IPTV multicast, and physical adapters need
-      deliberate opt-in networking and device changes.
+      recordings, plus GPU and DVB tuner device passthrough. The baseline omits
+      privileged and host-network access. SAT>IP, HDHomeRun, and IPTV multicast
+      need deliberate opt-in networking changes.
   tips:
     before_install:
       en_US: >-

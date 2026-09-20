@@ -25,13 +25,14 @@ Manual Docker Compose import remains possible from each source definition.
 - Tailscale: kernel-mode client with persistent state and interactive login.
 - Home Assistant: LinuxServer host-mode UI on TCP 8123 with zeroconf/mDNS/UPnP and Bluetooth discovery.
 - Hermes Agent: gateway plus loopback-only dashboard on TCP 9119.
-- TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982.
+- TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982 with GPU and DVB tuner passthrough.
 - Zigbee2MQTT: bridge-mode Zigbee gateway on TCP 8080 with adapter hardware opt-in.
 
 Every app image uses an explicit version tag and manifest-list digest. Both
 `amd64` and `arm64` are required. Hardware access remains opt-in except for
-the documented Home Assistant Bluetooth D-Bus path. Host networking is used
-only for documented discovery or VPN exceptions. WAN exposure remains an
+the documented Home Assistant Bluetooth D-Bus path and TVHeadend GPU/DVB
+devices. Host networking is used only for documented discovery or VPN
+exceptions. WAN exposure remains an
 opt-in edit documented in the app metadata.
 
 ## Security Boundary
