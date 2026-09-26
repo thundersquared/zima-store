@@ -20,7 +20,7 @@ services:
         source: /DATA/AppData/tvheadend
         target: /config
       - type: bind
-        source: /DATA/Recordings/tvheadend
+        source: "/DATA/Media/TV Shows/Recordings"
         target: /recordings
     devices:
       - /dev/dri:/dev/dri
