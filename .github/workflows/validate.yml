@@ -35,6 +35,14 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "scripts/reconcile_versions.py"
 
+      - name: Validate compose files
+        run: |
+          set -euo pipefail
+          for compose_file in Apps/*/docker-compose.yml; do
+            echo "checking ${compose_file}"
+            docker compose -f "${compose_file}" config -q
+          done
+
       - name: Check source versions
         run: uv run --no-project scripts/reconcile_versions.py check
 
