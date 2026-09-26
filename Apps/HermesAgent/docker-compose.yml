@@ -181,7 +181,7 @@ x-casaos:
     - arm64
   version_prefix: "v"
   version: "2026.9.24"
-  update_at: "2026-09-26T10:44:25Z"
+  update_at: "2026-09-26"
   release_notes:
     en_US: Pinned nousresearch/hermes-agent:v2026.9.24 at sha256:fca358f12efd.
   website: https://hermes-agent.nousresearch.com/

@@ -107,7 +107,10 @@ field instead, and runs on every publish before the store is built:
   version that the same rule increments on every digest change
 - `release_notes` and `update_at` are regenerated from the image reference that
   actually shipped, which removes the stale release notes that image-only
-  updates used to leave behind. Release notes always quote the unmodified tag
+  updates used to leave behind. Release notes always quote the unmodified tag,
+  and `update_at` uses the `YYYY-MM-DD` form the store metadata contract
+  recommends. Both are only rewritten when the app itself changed, so
+  `update_at` stays an honest "last app update" date
 
 No hand edits are needed. A hand-edited version is normalized back to the image
 tag on the next publish, so treat `version` as derived state: change the image

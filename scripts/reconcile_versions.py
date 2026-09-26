@@ -238,7 +238,7 @@ def reconcile(path, base_ref, stamp):
 
 
 def cmd_reconcile(args):
-    stamp = args.stamp or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    stamp = args.stamp or datetime.now(timezone.utc).strftime("%Y-%m-%d")
     changes = []
     for path in app_files(args.root):
         result = reconcile(path, args.base, stamp)
@@ -321,7 +321,7 @@ def main():
 
     reconcile_parser = sub.add_parser("reconcile")
     reconcile_parser.add_argument("--base", default="", help="git ref holding the previous state")
-    reconcile_parser.add_argument("--stamp", default="", help="RFC3339 value for update_at")
+    reconcile_parser.add_argument("--stamp", default="", help="update_at date, YYYY-MM-DD")
     reconcile_parser.set_defaults(func=cmd_reconcile)
 
     check_parser = sub.add_parser("check")

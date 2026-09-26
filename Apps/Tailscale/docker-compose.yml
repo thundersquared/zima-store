@@ -70,7 +70,7 @@ x-casaos:
     - arm64
   version_prefix: "v"
   version: "1.102.5"
-  update_at: "2026-09-26T10:44:25Z"
+  update_at: "2026-09-26"
   release_notes:
     en_US: Pinned ghcr.io/tailscale/tailscale:v1.102.5 at sha256:c507f3a2a6ab.
   website: https://tailscale.com/

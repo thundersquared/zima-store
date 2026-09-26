@@ -100,7 +100,7 @@ x-casaos:
     - amd64
     - arm64
   version: "2026.9.3"
-  update_at: "2026-09-26T10:46:34Z"
+  update_at: "2026-09-26"
   release_notes:
     en_US: Pinned lscr.io/linuxserver/homeassistant:2026.9.3 at sha256:44b0ab0d8e99.
   website: https://www.home-assistant.io/
