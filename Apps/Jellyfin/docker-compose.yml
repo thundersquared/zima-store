@@ -118,10 +118,10 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  # renovate: datasource=docker depName=lscr.io/linuxserver/jellyfin
   version: "10.11.11"
+  update_at: "2026-09-26T10:46:34Z"
   release_notes:
-    en_US: Pinned LinuxServer Jellyfin 10.11.10 manifest.
+    en_US: Pinned lscr.io/linuxserver/jellyfin:10.11.11 at sha256:438e44330078.
   website: https://jellyfin.org/
   repo: https://github.com/linuxserver/docker-jellyfin
   support: https://discourse.linuxserver.io/

@@ -5,7 +5,7 @@
     "docker:pinDigests",
     "helpers:pinGitHubActionDigests"
   ],
-  "enabledManagers": ["docker-compose", "custom.regex", "github-actions"],
+  "enabledManagers": ["docker-compose", "github-actions"],
   "dependencyDashboard": true,
   "dependencyDashboardAutoclose": true,
   "automerge": false,
@@ -15,29 +15,12 @@
   "minimumReleaseAgeBehaviour": "timestamp-required",
   "rebaseWhen": "conflicted",
   "separateMajorMinor": true,
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^Apps/.+/docker-compose\\.yml$/"],
-      "matchStrings": [
-        "# renovate: datasource=docker depName=(?<depName>[^\\s]+)\\n\\s*version:\\s*[\\\"'](?<currentValue>[^\\\"']+)[\\\"']"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker"
-    }
-  ],
   "packageRules": [
     {
-      "description": "Group app image and x-casaos metadata updates",
+      "description": "Group app image updates",
       "matchFileNames": ["Apps/**/docker-compose.yml"],
       "matchDatasources": ["docker"],
-      "groupName": "app images and metadata"
-    },
-    {
-      "description": "Keep metadata markers tag-based",
-      "matchManagers": ["custom.regex"],
-      "matchUpdateTypes": ["pinDigest"],
-      "enabled": false
+      "groupName": "app images"
     },
     {
       "description": "Refresh moving container channels immediately",

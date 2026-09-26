@@ -76,7 +76,6 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  # renovate: datasource=docker depName=germannewsmaker/myspeed
   version: "1.0.9"
   release_notes:
     en_US: Pinned MySpeed 1.0.9 stable manifest with Linux amd64 and arm64 support.

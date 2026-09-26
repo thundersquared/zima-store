@@ -113,11 +113,13 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  # TVHeadend tracks LinuxServer's moving latest channel; digest drives updates.
-  # renovate: datasource=docker depName=lscr.io/linuxserver/tvheadend
-  version: "latest"
+  # LinuxServer publishes no tvheadend version tag, so the store assigns a
+  # counter version here. Each digest change bumps the patch component, which
+  # is the only update signal the ZimaOS client can compare.
+  version: "1.0.0"
+  update_at: "2026-09-26T10:44:25Z"
   release_notes:
-    en_US: Pinned LinuxServer TVHeadend latest manifest; digest is the update signal.
+    en_US: Pinned lscr.io/linuxserver/tvheadend:latest at sha256:04caf2d70776.
   website: https://www.tvheadend.org/
   repo: https://github.com/linuxserver/docker-tvheadend
   support: https://discourse.linuxserver.io/

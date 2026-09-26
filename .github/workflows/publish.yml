@@ -17,7 +17,7 @@ jobs:
     name: Build Pages artifact
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     env:
       PAGES_DOMAIN: ${{ secrets.PAGES_DOMAIN }}
     steps:
@@ -25,9 +25,41 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Require Pages domain
         run: test -n "$PAGES_DOMAIN"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.19"
+
+      - name: Reconcile app versions
+        run: |
+          set -euo pipefail
+          base="${{ github.event.before }}"
+          if [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            base=""
+          fi
+          uv run --no-project scripts/reconcile_versions.py reconcile --base "$base"
+
+      - name: Check source versions
+        run: uv run --no-project scripts/reconcile_versions.py check
+
+      - name: Commit reconciled versions
+        run: |
+          if git diff --quiet; then
+            echo "versions already reconciled"
+            exit 0
+          fi
+          git -c user.name='zima-store-bot' -c user.email='zima-store-bot@users.noreply.github.com' \
+            commit -am 'chore(apps): reconcile store versions'
+          if ! git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
+            echo "::warning::could not push the reconciled versions; this build still publishes them, but main no longer records the bump. Check branch protection on main."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build ZimaOS v2 output
         uses: IceWhaleTech/build-appstore-action@407bf02f7ca1d3d610c88c895dc28b016bdace48 # v1.1.2
@@ -36,6 +68,9 @@ jobs:
           output: dist
           base-url: https://${{ env.PAGES_DOMAIN }}
           install-system-deps: "true"
+
+      - name: Check built store versions
+        run: uv run --no-project scripts/reconcile_versions.py check-index dist/index.json
 
       - name: Add Pages custom domain
         run: printf '%s\n' "$PAGES_DOMAIN" > dist/CNAME
@@ -74,6 +109,16 @@ jobs:
     env:
       PAGES_DOMAIN: ${{ secrets.PAGES_DOMAIN }}
     steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.19"
+
       - name: Verify store and app artifacts
         run: |
           set -euo pipefail
@@ -85,6 +130,8 @@ jobs:
           for path in store.json index.json category-list.json recommend-list.json; do
             curl --fail --silent --show-error --location "$BASE_URL/$path" | jq -e . >/dev/null
           done
+          curl --fail --silent --show-error --location "$BASE_URL/index.json" -o /tmp/zima-store-index.json
+          uv run --no-project scripts/reconcile_versions.py check-index /tmp/zima-store-index.json
           test "$(curl --fail --silent --show-error --location "$BASE_URL/CNAME")" = "$PAGES_DOMAIN"
           curl --fail --silent --show-error --location "$BASE_URL/metadata.tar.gz" -o /tmp/metadata.tar.gz
           curl --fail --silent --show-error --location "$BASE_URL/metadata.sha256" -o /tmp/zima-store-metadata.sha256

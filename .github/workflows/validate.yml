@@ -28,6 +28,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.19"
+
+      - name: Check source versions
+        run: uv run --no-project scripts/reconcile_versions.py check
+
       - name: Build ZimaOS v2 output
         uses: IceWhaleTech/build-appstore-action@407bf02f7ca1d3d610c88c895dc28b016bdace48 # v1.1.2
         with:
@@ -39,6 +47,9 @@ jobs:
       - name: Add Pages custom domain
         if: env.PAGES_DOMAIN != ''
         run: printf '%s\n' "$PAGES_DOMAIN" > dist/CNAME
+
+      - name: Check built store versions
+        run: uv run --no-project scripts/reconcile_versions.py check-index dist/index.json
 
       - name: Include store catalog lists
         run: cp category-list.json recommend-list.json dist/

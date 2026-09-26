@@ -28,7 +28,8 @@ Manual Docker Compose import remains possible from each source definition.
 - TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982 with GPU and DVB tuner passthrough.
 - Zigbee2MQTT: bridge-mode Zigbee gateway on TCP 8080 with adapter hardware opt-in.
 
-Every app image uses an explicit version tag and manifest-list digest. Both
+Every app image uses a pinned manifest-list digest and, where upstream
+publishes one, an explicit version tag. Both
 `amd64` and `arm64` are required. Hardware access remains opt-in except for
 the documented Home Assistant Bluetooth D-Bus path and TVHeadend GPU/DVB
 devices. Host networking is used only for documented discovery or VPN
@@ -87,10 +88,40 @@ Manual Compose import uses the files under `Apps/` directly.
 
 ## Updates
 
-Renovate maintains Docker tags/digests, GitHub Action pins, and matching
-`x-casaos.version` metadata. Routine updates wait five days. Security updates
-can bypass that delay. TVHeadend tracks the moving LinuxServer `latest` tag and
-uses digest changes as its update signal.
+Renovate maintains Docker tags and digests plus GitHub Action pins. Routine
+updates wait one day. Security updates can bypass that delay.
+
+Renovate does not touch `x-casaos.version`. The ZimaOS client decides whether
+an app has an update from the store manifest, and the store build drops any
+`x-casaos.version` that is not valid semver from `index.json`, which leaves the
+app with no detectable update path. `scripts/reconcile_versions.py` owns that
+field instead, and runs on every publish before the store is built:
+
+- `version` mirrors the main image tag, cleaned by the optional `version_prefix`
+  and `version_suffix` keys in the same `x-casaos` block, so
+  `ghcr.io/tailscale/tailscale:v1.102.5` publishes as `1.102.5` and
+  `eclipse-mosquitto:2.1.2-alpine` publishes as `2.1.2`. Both keys are consumed
+  by the reconcile script, not by the store build. A prefix or suffix that no
+  longer matches the tag is ignored and reported by `check`
+- LinuxServer `tvheadend` publishes no version tag, so it carries a counter
+  version that the same rule increments on every digest change
+- `release_notes` and `update_at` are regenerated from the image reference that
+  actually shipped, which removes the stale release notes that image-only
+  updates used to leave behind. Release notes always quote the unmodified tag
+
+No hand edits are needed. A hand-edited version is normalized back to the image
+tag on the next publish, so treat `version` as derived state: change the image
+reference instead. Run `uv run scripts/reconcile_versions.py reconcile` locally
+if you want the metadata to match an edit before it ships. Apps are edited as
+round-trip YAML documents, so comments, quoting, and prose formatting are
+preserved. The script pins its own dependency, so `uv run` is the only entry
+point needed. `check` runs in CI, and `check-index` asserts the built
+`index.json` exposes a semver version for every app.
+
+One limitation comes from the client, not the store: an upstream rebuild that
+reuses an existing tag and only changes the digest updates the `content_hash`
+but not `version`, so ZimaOS may not offer it as an update. A new upstream tag
+is always visible.
 
 ## License
 
