@@ -2,7 +2,7 @@ name: homeassistant
 services:
   homeassistant:
     # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
-    image: lscr.io/linuxserver/homeassistant:2026.9.2@sha256:76bf385d9f4ead87286db6e9966f5afc861a7cc59edd9493f06bc18810feb2f3
+    image: lscr.io/linuxserver/homeassistant:2026.9.3@sha256:44b0ab0d8e9916b88146a590fce810df23ee78248cd097d39d3fde38f0dfe541
     environment:
       PUID: "1000"
       PGID: "1000"
@@ -100,7 +100,7 @@ x-casaos:
     - amd64
     - arm64
   # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
-  version: "2026.9.2"
+  version: "2026.9.3"
   release_notes:
     en_US: Pinned LinuxServer Home Assistant 2026.9.1 manifest.
   website: https://www.home-assistant.io/
