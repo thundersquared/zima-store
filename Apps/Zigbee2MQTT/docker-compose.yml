@@ -15,7 +15,7 @@ services:
       - host.docker.internal:host-gateway
     ports:
       - target: 8080
-        published: "8080"
+        published: "9442"
         protocol: tcp
     volumes:
       - type: bind
@@ -80,7 +80,7 @@ x-casaos:
   id: com.thundersquared.zigbee2mqtt
   main: zigbee2mqtt
   index: /
-  port_map: "8080"
+  port_map: "9442"
   scheme: http
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/zigbee2mqtt.svg
   title:
