@@ -1,4 +1,4 @@
-name: tailscale
+name: thundersquared-tailscale
 services:
   tailscale:
     # renovate: datasource=docker depName=ghcr.io/tailscale/tailscale

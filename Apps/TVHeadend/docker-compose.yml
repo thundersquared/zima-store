@@ -1,12 +1,12 @@
-name: tvheadend
+name: thundersquared-tvheadend
 services:
   tvheadend:
     # renovate: datasource=docker depName=lscr.io/linuxserver/tvheadend
     image: lscr.io/linuxserver/tvheadend:latest@sha256:04caf2d70776233154fff1a184647c72068b3aa1593f3576c1c9ea3a755ae18c
     environment:
-      PUID: "1000"
-      PGID: "1000"
-      TZ: UTC
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
       RUN_OPTS: --nosatip
     ports:
       - target: 9981

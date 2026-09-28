@@ -1,4 +1,4 @@
-name: hermes-agent
+name: thundersquared-hermes-agent
 services:
   gateway:
     # renovate: datasource=docker depName=nousresearch/hermes-agent

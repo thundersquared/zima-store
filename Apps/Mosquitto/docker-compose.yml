@@ -1,4 +1,4 @@
-name: mosquitto
+name: thundersquared-mosquitto
 services:
   mosquitto-init:
     # renovate: datasource=docker depName=eclipse-mosquitto

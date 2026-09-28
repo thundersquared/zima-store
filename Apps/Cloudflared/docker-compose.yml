@@ -1,4 +1,4 @@
-name: cloudflared
+name: thundersquared-cloudflared
 services:
   cloudflared:
     # renovate: datasource=docker depName=cloudflare/cloudflared

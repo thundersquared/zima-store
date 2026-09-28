@@ -36,6 +36,10 @@ jobs:
           cache-dependency-glob: "scripts/reconcile_versions.py"
 
       - name: Validate compose files
+        env:
+          PUID: "1000"
+          PGID: "1000"
+          TZ: "UTC"
         run: |
           set -euo pipefail
           for compose_file in Apps/*/docker-compose.yml; do
