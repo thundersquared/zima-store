@@ -10,7 +10,7 @@ services:
     network_mode: host
     volumes:
       - type: bind
-        source: /DATA/AppData/homeassistant/config
+        source: /DATA/AppData/homeassistant
         target: /config
       - type: bind
         source: /run/dbus
