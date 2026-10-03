@@ -27,6 +27,7 @@ Manual Docker Compose import remains possible from each source definition.
 - Hermes Agent: gateway plus loopback-only dashboard on TCP 9119.
 - TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982 with GPU and DVB tuner passthrough.
 - Zigbee2MQTT: bridge-mode Zigbee gateway on TCP 9442 with adapter hardware opt-in.
+- Proxmox Backup Server: dockurr bridge-mode HTTPS UI on TCP 8007 with persistent config and datastore.
 
 Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both

@@ -1,0 +1,91 @@
+name: thundersquared-proxmox-backup
+services:
+  proxmox-backup:
+    # renovate: datasource=docker depName=dockurr/proxmox-backup
+    image: dockurr/proxmox-backup:4.2.7@sha256:decbc00f63ab7278ee5ed9bf6c2478ec47213dd3afe711a903c6b228718bd7da
+    hostname: pbs
+    environment:
+      TZ: $TZ
+      PASSWORD: ""
+    ports:
+      - target: 8007
+        published: "8007"
+        protocol: tcp
+    tmpfs:
+      - /run
+    volumes:
+      - type: bind
+        source: /DATA/AppData/proxmox-backup/config
+        target: /etc/proxmox-backup
+      - type: bind
+        source: /DATA/AppData/proxmox-backup/data
+        target: /var/lib/proxmox-backup
+    networks:
+      - proxmox-backup
+    restart: unless-stopped
+    stop_grace_period: 2m
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by Proxmox Backup Server.
+        - container: PASSWORD
+          description:
+            en_US: Password for the web UI root user. Required. Keep this secret.
+      ports:
+        - container: "8007"
+          description:
+            en_US: Proxmox Backup Server HTTPS web UI and API port.
+      volumes:
+        - container: /etc/proxmox-backup
+          description:
+            en_US: Persistent Proxmox Backup Server configuration, users, and certificates.
+        - container: /var/lib/proxmox-backup
+          description:
+            en_US: Persistent Proxmox Backup Server state and default datastore location.
+
+networks:
+  proxmox-backup:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.proxmox-backup
+  main: proxmox-backup
+  index: /
+  port_map: "8007"
+  scheme: https
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/proxmox.svg
+  title:
+    en_US: Proxmox Backup Server
+  tagline:
+    en_US: Encrypted, deduplicated backups for Proxmox VE and more
+  description:
+    en_US: >-
+      Proxmox Backup Server from the community dockurr image on a dedicated
+      bridge network. The web UI is served over HTTPS with a self-signed
+      certificate on port 8007. Configuration and backup data persist under
+      /DATA/AppData/proxmox-backup. No privileged mode, host networking, or
+      device mapping is enabled. The image is a community build and is not
+      affiliated with or endorsed by Proxmox Server Solutions GmbH.
+  tips:
+    before_install:
+      en_US: >-
+        Set a strong PASSWORD before install; log in as root with it. Point
+        the datastore at a dedicated disk path mounted into the container
+        after install, since the default lives under the app data folder.
+        Keep port 8007 on a trusted LAN or behind a VPN. On Raspberry Pi 5,
+        switch the host to the 4k page-size kernel (kernel=kernel8.img in
+        /boot/firmware/config.txt) or backups fail with EINVAL.
+  author: thundersquared
+  developer: dockur
+  category: Developer
+  architectures:
+    - amd64
+    - arm64
+  version: "4.2.7"
+  release_notes:
+    en_US: Pinned dockurr/proxmox-backup:4.2.7 at sha256:decbc00f63ab.
+  website: https://www.proxmox.com/en/products/proxmox-backup-server/overview
+  repo: https://github.com/dockur/proxmox-backup
+  support: https://github.com/dockur/proxmox-backup/issues
+  docs: https://github.com/dockur/proxmox-backup#readme
