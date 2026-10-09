@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This catalog needs no running services or per-thread authentication.
+# Tool installations and dependency caches survive orb snapshots and pauses.
+echo 'zima-store: no services or authentication to resume.'

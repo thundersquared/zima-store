@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+privileged=()
+if (( EUID != 0 )); then
+  privileged=(sudo -n)
+fi
+
+echo '==> System tools (Docker client only; no daemon or app containers)'
+time {
+  missing=()
+  for package in ca-certificates curl git jq librsvg2-bin python3.11; do
+    if [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" != 'install ok installed' ]]; then
+      missing+=("$package")
+    fi
+  done
+  if (( ${#missing[@]} )); then
+    "${privileged[@]}" apt-get update
+    "${privileged[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing[@]}"
+  fi
+
+  docker_packages=()
+  if ! command -v docker >/dev/null 2>&1; then
+    docker_packages+=(docker-ce-cli)
+  fi
+  if ! docker compose version >/dev/null 2>&1; then
+    docker_packages+=(docker-compose-plugin)
+  fi
+  if (( ${#docker_packages[@]} )); then
+    "${privileged[@]}" install -d -m 0755 /etc/apt/keyrings
+    curl --fail --silent --show-error --location https://download.docker.com/linux/debian/gpg \
+      | "${privileged[@]}" tee /etc/apt/keyrings/docker.asc >/dev/null
+    "${privileged[@]}" chmod a+r /etc/apt/keyrings/docker.asc
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" \
+      | "${privileged[@]}" tee /etc/apt/sources.list.d/docker.list >/dev/null
+    "${privileged[@]}" apt-get update
+    "${privileged[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${docker_packages[@]}"
+  fi
+}
+
+# Read the CI pins instead of maintaining a second set of tool versions.
+workflow=.github/workflows/validate.yml
+uv_version="$(sed -nE 's/^[[:space:]]+version: "([^"]+)".*/\1/p' "$workflow")"
+builder_ref="$(sed -nE 's|^[[:space:]]+uses: IceWhaleTech/build-appstore-action@([0-9a-f]+).*|\1|p' "$workflow")"
+: "${uv_version:?Missing uv version in validate.yml}"
+: "${builder_ref:?Missing builder pin in validate.yml}"
+
+echo "==> uv $uv_version and inline-script dependencies"
+time {
+  uv_bin="$(command -v uv || printf '/usr/local/bin/uv')"
+  if [[ ! -x "$uv_bin" ]] || [[ "$("$uv_bin" --version | cut -d ' ' -f 2)" != "$uv_version" ]]; then
+    curl --fail --silent --show-error --location "https://astral.sh/uv/$uv_version/install.sh" \
+      | "${privileged[@]}" env UV_UNMANAGED_INSTALL="$(dirname "$uv_bin")" sh
+  fi
+  "$uv_bin" run --no-project scripts/reconcile_versions.py check
+}
+
+echo "==> ZimaOS builder $builder_ref (Python 3.11)"
+time {
+  builder_dir="$HOME/.cache/zima-store/build-appstore-action"
+  if [[ ! -d "$builder_dir/.git" ]]; then
+    git init "$builder_dir"
+    git -C "$builder_dir" remote add origin https://github.com/IceWhaleTech/build-appstore-action.git
+  fi
+  if [[ "$(git -C "$builder_dir" rev-parse --verify HEAD 2>/dev/null || true)" != "$builder_ref" ]]; then
+    git -C "$builder_dir" fetch --depth=1 origin "$builder_ref"
+    git -C "$builder_dir" checkout --detach FETCH_HEAD
+  fi
+  if [[ ! -x "$builder_dir/.venv/bin/python" ]]; then
+    "$uv_bin" venv --python python3.11 "$builder_dir/.venv"
+  fi
+  "$uv_bin" pip install --python "$builder_dir/.venv/bin/python" -r "$builder_dir/requirements.txt"
+  "$builder_dir/.venv/bin/python" "$builder_dir/scripts/build_appstore.py" --help >/dev/null
+}
+
+echo '==> Orb tools and dependencies are ready'
