@@ -117,9 +117,8 @@ field instead, and runs on every publish before the store is built:
   `eclipse-mosquitto:2.1.2-alpine` publishes as `2.1.2`. Both keys are consumed
   by the reconcile script, not by the store build. A prefix or suffix that no
   longer matches the tag is ignored and reported by `check`
-- LinuxServer `tvheadend` and Scrutiny `master-omnibus` publish no version
-  tag, so they carry a counter version that the same rule increments on every
-  digest change
+- LinuxServer `tvheadend` publishes no version tag, so it carries a counter
+  version that the same rule increments on every digest change
 - `release_notes` and `update_at` are regenerated from the image reference that
   actually shipped, which removes the stale release notes that image-only
   updates used to leave behind. Release notes always quote the unmodified tag,

@@ -2,7 +2,7 @@ name: thundersquared-scrutiny
 services:
   scrutiny:
     # renovate: datasource=docker depName=ghcr.io/analogj/scrutiny
-    image: ghcr.io/analogj/scrutiny:master-omnibus@sha256:18689773150d6b8b53c94a435f40f7b6e946fd4a6d40b44c64fa2154a5b38941
+    image: ghcr.io/analogj/scrutiny:v0.9.5-omnibus@sha256:6ee271ee531458f134220ca8b2c5c8ccc2711a799c827fef953fa865d91e312f
     environment:
       TZ: $TZ
       COLLECTOR_CRON_SCHEDULE: "0 0 * * *"
@@ -111,12 +111,11 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  # Scrutiny omnibus is consumed from the moving master-omnibus channel, so the
-  # store assigns a counter version here. Each digest change bumps the patch
-  # component, which is the only update signal the ZimaOS client can compare.
-  version: "1.0.0"
+  version_prefix: "v"
+  version_suffix: "-omnibus"
+  version: "0.9.5"
   release_notes:
-    en_US: Pinned ghcr.io/analogj/scrutiny:master-omnibus at sha256:18689773150d.
+    en_US: Pinned ghcr.io/analogj/scrutiny:v0.9.5-omnibus at sha256:6ee271ee5314.
   website: https://github.com/AnalogJ/scrutiny
   repo: https://github.com/AnalogJ/scrutiny
   support: https://github.com/AnalogJ/scrutiny/issues
