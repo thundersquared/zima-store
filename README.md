@@ -28,13 +28,15 @@ Manual Docker Compose import remains possible from each source definition.
 - TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982 with GPU and DVB tuner passthrough.
 - Zigbee2MQTT: bridge-mode Zigbee gateway on TCP 9442 with adapter hardware opt-in.
 - Proxmox Backup Server: dockurr bridge-mode HTTPS UI on TCP 8007 with persistent config and datastore.
+- Scrutiny: omnibus bridge-mode S.M.A.R.T. dashboard on TCP 8080 with bundled
+  collector and InfluxDB, and per-disk passthrough.
 
 Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both
 `amd64` and `arm64` are required. Hardware access remains opt-in except for
-the documented Home Assistant Bluetooth D-Bus path and TVHeadend GPU/DVB
-devices. Host networking is used only for documented discovery or VPN
-exceptions. WAN exposure remains an
+the documented Home Assistant Bluetooth D-Bus path, TVHeadend GPU/DVB
+devices, and Scrutiny disk devices. Host networking is used only for
+documented discovery or VPN exceptions. WAN exposure remains an
 opt-in edit documented in the app metadata.
 
 ## Security Boundary
@@ -81,6 +83,17 @@ for trusted-LAN use. Keep both ports off untrusted networks; UDP 1900 also
 requires no competing host SSDP service. Port 8921 is published for HTTPS but
 remains inactive until certificates and Jellyfin HTTPS settings are configured.
 
+Scrutiny uses the omnibus image so the web dashboard, the S.M.A.R.T. collector,
+and InfluxDB run in one container. The dashboard has no authentication, so keep
+TCP 8080 on a trusted LAN. InfluxDB port 8086 is not published. Only `/dev/sda`
+is passed through by default, with `SYS_RAWIO` for S.M.A.R.T. access and a
+read-only `/run/udev`; edit the device list to match the host's disks before
+installing, since a missing device prevents the container from starting. NVMe
+drives need the controller device (`/dev/nvme0`) plus `SYS_ADMIN`, which grants
+broad host administration rights and stays opt-in. The collector runs once at
+startup and then on `COLLECTOR_CRON_SCHEDULE` (daily at midnight by default).
+The InfluxDB volume stores an admin token; treat backups as sensitive.
+
 ## Build
 
 GitHub Actions runs the official pinned ZimaOS v2 builder. The generated
@@ -104,8 +117,9 @@ field instead, and runs on every publish before the store is built:
   `eclipse-mosquitto:2.1.2-alpine` publishes as `2.1.2`. Both keys are consumed
   by the reconcile script, not by the store build. A prefix or suffix that no
   longer matches the tag is ignored and reported by `check`
-- LinuxServer `tvheadend` publishes no version tag, so it carries a counter
-  version that the same rule increments on every digest change
+- LinuxServer `tvheadend` and Scrutiny `master-omnibus` publish no version
+  tag, so they carry a counter version that the same rule increments on every
+  digest change
 - `release_notes` and `update_at` are regenerated from the image reference that
   actually shipped, which removes the stale release notes that image-only
   updates used to leave behind. Release notes always quote the unmodified tag,
