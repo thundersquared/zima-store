@@ -1,18 +1,29 @@
 # thundersquared Zima Store
 
-Security-first ZimaOS v2 app store for trusted-LAN deployments.
+Security-first ZimaOS app store for trusted-LAN deployments.
 
-Store URL:
+Store URLs:
 
-`https://zima-store.oss.sqrd-cdn.com/store.json`
+- v2 (browse and install): `https://zima-store.oss.sqrd-cdn.com/store.json`
+- v1 (update detection): `https://github.com/thundersquared/zima-store/archive/refs/heads/main.zip`
 
 Configure repository secret `PAGES_DOMAIN` with value
 `zima-store.oss.sqrd-cdn.com`. Publish workflow uses it for generated URLs and
 Pages `CNAME` output.
 
-Add that URL as a custom store in ZimaOS. This project publishes ZimaOS v2
-metadata only. Legacy CasaOS v1 clients and `main.zip` stores are out of scope.
-Manual Docker Compose import remains possible from each source definition.
+Add the v2 URL as a custom store in ZimaOS. Also register the v1 URL: the
+ZimaOS update check resolves installed apps only against v1 `.zip` stores, by
+compose project name, so apps from the v2 store alone are never offered
+updates. The ZimaOS 1.7 UI rejects `.zip` URLs ("Unsupported import method"),
+so register it through the API on the device:
+
+```sh
+curl -s -X POST "http://localhost/v2/app_management/appstore?url=https://github.com/thundersquared/zima-store/archive/refs/heads/main.zip"
+```
+
+The v1 store is the repository's `main` branch archive, so it serves source
+definitions as merged. Manual Docker Compose import remains possible from each
+source definition.
 
 ## Included Apps
 
