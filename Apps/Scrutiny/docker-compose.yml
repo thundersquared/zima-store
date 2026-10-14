@@ -1,0 +1,123 @@
+name: thundersquared-scrutiny
+services:
+  scrutiny:
+    # renovate: datasource=docker depName=ghcr.io/analogj/scrutiny
+    image: ghcr.io/analogj/scrutiny:master-omnibus@sha256:18689773150d6b8b53c94a435f40f7b6e946fd4a6d40b44c64fa2154a5b38941
+    environment:
+      TZ: $TZ
+      COLLECTOR_CRON_SCHEDULE: "0 0 * * *"
+    ports:
+      - target: 8080
+        published: "8080"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /DATA/AppData/scrutiny/config
+        target: /opt/scrutiny/config
+      - type: bind
+        source: /DATA/AppData/scrutiny/influxdb
+        target: /opt/scrutiny/influxdb
+      - type: bind
+        source: /run/udev
+        target: /run/udev
+        read_only: true
+    devices:
+      - /dev/sda:/dev/sda
+    networks:
+      - scrutiny
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+      - SYS_RAWIO
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/health >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by Scrutiny and its collector cron schedule.
+        - container: COLLECTOR_CRON_SCHEDULE
+          description:
+            en_US: Cron schedule for the bundled S.M.A.R.T. collector. Defaults to daily at midnight; a collection also runs once at startup.
+      ports:
+        - container: "8080"
+          description:
+            en_US: Scrutiny web dashboard and API. It has no authentication; keep it on a trusted LAN.
+      volumes:
+        - container: /opt/scrutiny/config
+          description:
+            en_US: Persistent Scrutiny configuration, including scrutiny.yaml and notification URLs. Stored at /DATA/AppData/scrutiny/config on the host.
+        - container: /opt/scrutiny/influxdb
+          description:
+            en_US: Persistent bundled InfluxDB data with S.M.A.R.T. history and the generated InfluxDB admin token. Stored at /DATA/AppData/scrutiny/influxdb on the host.
+        - container: /run/udev
+          description:
+            en_US: Read-only host udev database used to identify disks by serial and WWN.
+      devices:
+        - container: /dev/sda
+          description:
+            en_US: First SATA/SAS disk to monitor. Add one mapping per disk (/dev/sdb, ...); NVMe drives need the controller (/dev/nvme0) and the SYS_ADMIN capability.
+
+networks:
+  scrutiny:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.scrutiny
+  main: scrutiny
+  index: /
+  port_map: "8080"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/png/scrutiny.png
+  title:
+    en_US: Scrutiny
+  tagline:
+    en_US: Hard drive S.M.A.R.T. monitoring dashboard
+  description:
+    en_US: >-
+      Scrutiny omnibus image bundling the web dashboard, the S.M.A.R.T.
+      collector, and InfluxDB in one bridge-mode container on HTTP port 8080.
+      The collector runs smartctl once at startup and then on a cron schedule,
+      and the dashboard tracks drive health against manufacturer thresholds and
+      Backblaze failure rates. Disks are passed through individually; /dev/sda
+      is mapped by default with SYS_RAWIO for S.M.A.R.T. access. The InfluxDB
+      port is not published.
+  tips:
+    before_install:
+      en_US: >-
+        Scrutiny has no login, so keep port 8080 on a trusted LAN and put any
+        external access behind an authenticated reverse proxy, VPN, or tunnel.
+        Only /dev/sda is passed through by default and installation fails if it
+        does not exist; edit the device list to match your disks (one entry per
+        disk, for example /dev/sdb). NVMe drives need the controller device
+        (/dev/nvme0, not /dev/nvme0n1) plus the SYS_ADMIN capability, which
+        grants broad host administration rights; add it only deliberately.
+        The InfluxDB volume holds an admin token; treat backups as sensitive.
+  author: thundersquared
+  developer: AnalogJ
+  category: Others
+  architectures:
+    - amd64
+    - arm64
+  # Scrutiny omnibus is consumed from the moving master-omnibus channel, so the
+  # store assigns a counter version here. Each digest change bumps the patch
+  # component, which is the only update signal the ZimaOS client can compare.
+  version: "1.0.0"
+  release_notes:
+    en_US: Pinned ghcr.io/analogj/scrutiny:master-omnibus at sha256:18689773150d.
+  website: https://github.com/AnalogJ/scrutiny
+  repo: https://github.com/AnalogJ/scrutiny
+  support: https://github.com/AnalogJ/scrutiny/issues
+  docs: https://github.com/AnalogJ/scrutiny/tree/master/docs

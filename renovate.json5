@@ -28,7 +28,7 @@
       "description": "Refresh moving container channels immediately",
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["digest"],
-      "matchCurrentValue": "/^(latest|stable|edge|master|master-debian)$/",
+      "matchCurrentValue": "/^(latest|stable|edge|master|master-debian|master-omnibus)$/",
       "minimumReleaseAge": "0 days",
       "addLabels": ["upstream-moving-tag"]
     }
