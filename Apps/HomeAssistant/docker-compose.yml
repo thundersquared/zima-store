@@ -99,10 +99,10 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  version: "2026.9.3"
-  update_at: "2026-09-26"
+  version: "2026.10.1"
+  update_at: "2026-10-16"
   release_notes:
-    en_US: Pinned lscr.io/linuxserver/homeassistant:2026.9.3 at sha256:44b0ab0d8e99.
+    en_US: Pinned lscr.io/linuxserver/homeassistant:2026.10.1 at sha256:e3481a08cd7d.
   website: https://www.home-assistant.io/
   repo: https://github.com/linuxserver/docker-homeassistant
   support: https://discourse.linuxserver.io/

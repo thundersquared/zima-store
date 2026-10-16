@@ -82,9 +82,10 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  version: "4.2.7"
+  version: "4.2.8"
+  update_at: '2026-10-16'
   release_notes:
-    en_US: Pinned dockurr/proxmox-backup:4.2.7 at sha256:decbc00f63ab.
+    en_US: Pinned dockurr/proxmox-backup:4.2.8 at sha256:06ee3733387d.
   website: https://www.proxmox.com/en/products/proxmox-backup-server/overview
   repo: https://github.com/dockur/proxmox-backup
   support: https://github.com/dockur/proxmox-backup/issues

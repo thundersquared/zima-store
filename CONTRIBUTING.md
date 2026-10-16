@@ -19,9 +19,10 @@ changes must be documented with their security and networking consequences.
 
 ## Dependency Changes
 
-Prefer Renovate-generated image and action updates. Keep image tags and
-`x-casaos.version` synchronized. Omit optional `x-casaos.update_at` metadata to
-avoid stale dates. Keep image references pinned to manifest-list digests and
+Prefer Renovate-generated image and action updates. The Reconcile versions
+workflow keeps `x-casaos.version`, `release_notes`, and `update_at` synchronized
+with the image tag by committing onto the pull request branch; pull requests
+from forks must run `scripts/reconcile_versions.py reconcile` themselves. Keep image references pinned to manifest-list digests and
 confirm both required architectures before merge.
 
 ## Amp Orbs

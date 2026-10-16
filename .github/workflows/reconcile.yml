@@ -1,0 +1,86 @@
+name: Reconcile versions
+
+# Keeps x-casaos.version, release_notes, and update_at in step with each app's
+# pinned image on the PR branch itself, so main never needs a bot push. The v1
+# store serves main's branch archive directly, so main must already carry the
+# reconciled values.
+
+on:
+  pull_request:
+    paths:
+      - "Apps/**"
+      - "scripts/reconcile_versions.py"
+      - ".github/workflows/reconcile.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reconcile-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    name: Reconcile app versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+      SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.1"
+          enable-cache: true
+          cache-dependency-glob: "scripts/reconcile_versions.py"
+
+      - name: Reconcile against the PR base
+        run: |
+          set -euo pipefail
+          base="$(git merge-base "origin/${BASE_REF}" HEAD)"
+          uv run --no-project scripts/reconcile_versions.py reconcile --base "$base"
+          uv run --no-project scripts/reconcile_versions.py check
+
+      - name: Push reconciled versions
+        id: push
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "versions already reconciled"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff
+          if [ "$SAME_REPO" != "true" ]; then
+            echo "::error::App versions are not reconciled. Run 'uv run --no-project scripts/reconcile_versions.py reconcile --base \$(git merge-base origin/main HEAD)' and commit the result."
+            exit 1
+          fi
+          # Renovate ignores commits from this author (gitIgnoredAuthors), so
+          # it keeps managing and rebasing its branch after this push.
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898283+github-actions[bot]@users.noreply.github.com' \
+            commit -am 'chore(apps): reconcile store versions'
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${HEAD_REF}"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # Pushes made with GITHUB_TOKEN start no workflows, so the reconciled
+      # head would otherwise carry no validation checks.
+      - name: Validate the reconciled head
+        if: steps.push.outputs.pushed == 'true'
+        run: gh workflow run validate.yml --ref "$HEAD_REF"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}

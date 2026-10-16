@@ -120,7 +120,11 @@ Renovate does not touch `x-casaos.version`. The ZimaOS client decides whether
 an app has an update from the store manifest, and the store build drops any
 `x-casaos.version` that is not valid semver from `index.json`, which leaves the
 app with no detectable update path. `scripts/reconcile_versions.py` owns that
-field instead, and runs on every publish before the store is built:
+field instead. The Reconcile versions workflow runs it on every pull request
+that touches an app, diffing against the PR's merge base, and commits the result
+onto the PR branch, Renovate's included, so `main` is reconciled the moment it
+merges. That matters because the v1 store serves `main` as-is. Publish runs it
+again as a safety net and warns if `main` was not reconciled:
 
 - `version` mirrors the main image tag, cleaned by the optional `version_prefix`
   and `version_suffix` keys in the same `x-casaos` block, so
@@ -138,7 +142,7 @@ field instead, and runs on every publish before the store is built:
   `update_at` stays an honest "last app update" date
 
 No hand edits are needed. A hand-edited version is normalized back to the image
-tag on the next publish, so treat `version` as derived state: change the image
+tag on the pull request, so treat `version` as derived state: change the image
 reference instead. Run `uv run scripts/reconcile_versions.py reconcile` locally
 if you want the metadata to match an edit before it ships. Apps are edited as
 round-trip YAML documents, so comments, quoting, and prose formatting are
