@@ -28,6 +28,24 @@
       "groupName": "app images"
     },
     {
+      "description": "Automerge non-major updates of the actions our workflows use, once checks pass",
+      "matchManagers": ["github-actions"],
+      "matchDepTypes": ["action"],
+      "matchPackageNames": [
+        "actions/checkout",
+        "actions/deploy-pages",
+        "actions/upload-artifact",
+        "actions/upload-pages-artifact",
+        "aquasecurity/trivy-action",
+        "astral-sh/setup-uv",
+        "github/codeql-action",
+        "github/codeql-action/upload-sarif",
+        "IceWhaleTech/build-appstore-action"
+      ],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
+      "automerge": true
+    },
+    {
       "description": "Refresh moving container channels immediately",
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["digest"],
