@@ -126,7 +126,7 @@ app with no detectable update path. `scripts/reconcile_versions.py` owns that
 field instead, and it only ever runs against `main`. Publish runs it before
 building; if `main` is not reconciled, publish fails without deploying and
 dispatches the Reconcile versions workflow, which commits the reconciled values
-straight to `main` and starts a fresh publish run. Pull requests never get
+straight to `main`; that push starts a fresh publish run. Pull requests never get
 reconciled or written to by CI. The deploy gate matters because the v1 store
 serves `main` as-is:
 
@@ -153,6 +153,16 @@ round-trip YAML documents, so comments, quoting, and prose formatting are
 preserved. The script pins its own dependency, so `uv run` is the only entry
 point needed. `check` runs in CI, and `check-index` asserts the built
 `index.json` exposes a semver version for every app.
+
+The `main` ruleset requires pull requests and does not let GitHub Actions
+bypass it, so Reconcile versions pushes with a deploy key instead:
+
+1. `ssh-keygen -t ed25519 -N '' -C zima-store-reconcile -f reconcile_key`
+2. Settings → Deploy keys: add `reconcile_key.pub` with write access.
+3. Settings → Secrets and variables → Actions: add the private key as
+   `RECONCILE_DEPLOY_KEY`, then delete both local files.
+4. Settings → Rules → Main branch protection: add Deploy keys to the bypass
+   list.
 
 One limitation comes from the client, not the store: an upstream rebuild that
 reuses an existing tag and only changes the digest updates the `content_hash`
