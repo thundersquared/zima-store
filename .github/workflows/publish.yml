@@ -17,7 +17,7 @@ jobs:
     name: Build Pages artifact
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     env:
       PAGES_DOMAIN: ${{ secrets.PAGES_DOMAIN }}
     steps:
@@ -49,19 +49,15 @@ jobs:
       - name: Check source versions
         run: uv run --no-project scripts/reconcile_versions.py check
 
-      - name: Commit reconciled versions
+      # The v1 store serves main's branch archive as-is, so publishing a
+      # reconciled v2 index from an unreconciled main would split the stores.
+      - name: Require reconciled source
         run: |
-          if git diff --quiet; then
-            echo "versions already reconciled"
-            exit 0
+          if ! git diff --quiet; then
+            git diff
+            echo "::error::main carries unreconciled app versions; nothing was published. Reconcile them in a pull request (the Reconcile versions workflow does this automatically)."
+            exit 1
           fi
-          git -c user.name='zima-store-bot' -c user.email='zima-store-bot@users.noreply.github.com' \
-            commit -am 'chore(apps): reconcile store versions'
-          if ! git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
-            echo "::warning::could not push the reconciled versions; this build still publishes them, but main no longer records the bump. Check branch protection on main."
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build ZimaOS v2 output
         uses: IceWhaleTech/build-appstore-action@c9bb47fad5b32d7928a07978fad68801f52e910f # v1.1.3
