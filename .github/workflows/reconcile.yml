@@ -2,7 +2,9 @@ name: Reconcile versions
 
 # Commits reconciled x-casaos.version, release_notes, and update_at values to
 # main. Publish dispatches this when it finds main unreconciled and refuses to
-# deploy; once the commit lands, this starts a fresh publish run.
+# deploy. The commit is pushed with the RECONCILE_DEPLOY_KEY deploy key, which
+# the main ruleset lets bypass its pull request requirement; unlike a
+# GITHUB_TOKEN push, it starts a fresh publish run on its own.
 
 on:
   workflow_dispatch:
@@ -29,8 +31,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      actions: write
+      contents: read
     env:
       BASE: ${{ inputs.base }}
       EXPECTED_SHA: ${{ inputs.sha }}
@@ -70,27 +71,29 @@ jobs:
           uv run --no-project scripts/reconcile_versions.py check
 
       - name: Commit to main
-        id: push
         if: steps.current.outputs.stale == 'false'
         run: |
           set -euo pipefail
           if git diff --quiet; then
             echo "versions already reconciled"
-            echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git diff
           git -c user.name='github-actions[bot]' \
             -c user.email='41898283+github-actions[bot]@users.noreply.github.com' \
             commit -am 'chore(apps): reconcile store versions'
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
-          echo "pushed=true" >> "$GITHUB_OUTPUT"
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::Secret RECONCILE_DEPLOY_KEY is not set; see README for the deploy key setup."
+            exit 1
+          fi
+          ssh_dir="$RUNNER_TEMP/reconcile-ssh"
+          install -d -m 700 "$ssh_dir"
+          printf '%s\n' "$DEPLOY_KEY" > "$ssh_dir/key"
+          chmod 600 "$ssh_dir/key"
+          # GitHub's published Ed25519 host key.
+          echo 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' > "$ssh_dir/known_hosts"
+          git -c core.sshCommand="ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o StrictHostKeyChecking=yes" \
+            push "git@github.com:${GITHUB_REPOSITORY}.git" HEAD:main
+          rm -rf "$ssh_dir"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Publish the reconciled main
-        if: steps.push.outputs.pushed == 'true'
-        run: gh workflow run publish.yml --ref main
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+          DEPLOY_KEY: ${{ secrets.RECONCILE_DEPLOY_KEY }}

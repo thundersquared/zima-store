@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  # Reconcile versions dispatches this after pushing its commit, because
-  # pushes made with GITHUB_TOKEN start no workflows.
   workflow_dispatch:
 
 permissions:
@@ -55,7 +53,7 @@ jobs:
 
       # The v1 store serves main's branch archive as-is, so publishing a
       # reconciled v2 index from an unreconciled main would split the stores.
-      # Stop here and let Reconcile versions commit the fix to main; it then
+      # Stop here and let Reconcile versions commit the fix to main; that push
       # starts a fresh publish run.
       - name: Require reconciled source
         run: |
