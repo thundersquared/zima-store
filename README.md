@@ -116,9 +116,8 @@ Manual Compose import uses the files under `Apps/` directly.
 Renovate maintains Docker tags and digests plus GitHub Action pins. Routine
 updates wait one day. Security updates can bypass that delay. Minor, patch,
 and digest updates of the actions listed in `renovate.json5` automerge once
-their checks pass; the Lint workflow (actionlint plus Renovate's config
-validator) gives every workflow-only PR a check. Major action updates, app
-images, and anything not listed still need a manual merge.
+their checks pass. Major action updates, app images, and anything not listed
+still need a manual merge.
 
 Renovate does not touch `x-casaos.version`. The ZimaOS client decides whether
 an app has an update from the store manifest, and the store build drops any
