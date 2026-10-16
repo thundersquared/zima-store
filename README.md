@@ -124,7 +124,7 @@ field instead. The Reconcile versions workflow runs it on every pull request
 that touches an app, diffing against the PR's merge base, and commits the result
 onto the PR branch, Renovate's included, so `main` is reconciled the moment it
 merges. That matters because the v1 store serves `main` as-is. Publish runs it
-again as a safety net and warns if `main` was not reconciled:
+again and fails without publishing if `main` was not reconciled:
 
 - `version` mirrors the main image tag, cleaned by the optional `version_prefix`
   and `version_suffix` keys in the same `x-casaos` block, so

@@ -49,11 +49,14 @@ jobs:
       - name: Check source versions
         run: uv run --no-project scripts/reconcile_versions.py check
 
-      - name: Warn about unreconciled source
+      # The v1 store serves main's branch archive as-is, so publishing a
+      # reconciled v2 index from an unreconciled main would split the stores.
+      - name: Require reconciled source
         run: |
           if ! git diff --quiet; then
-            git diff --stat
-            echo "::warning::main carries unreconciled app versions. This build publishes the reconciled values, but the v1 store serves main as-is. The Reconcile versions workflow fixes this on the PR before merge."
+            git diff
+            echo "::error::main carries unreconciled app versions; nothing was published. Reconcile them in a pull request (the Reconcile versions workflow does this automatically)."
+            exit 1
           fi
 
       - name: Build ZimaOS v2 output
