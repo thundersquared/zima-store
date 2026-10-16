@@ -16,9 +16,6 @@
   "minimumReleaseAge": "1 day",
   "minimumReleaseAgeBehaviour": "timestamp-required",
   "rebaseWhen": "conflicted",
-  // The Reconcile versions workflow pushes version bumps onto Renovate
-  // branches; ignore that author so Renovate keeps managing them.
-  "gitIgnoredAuthors": ["41898283+github-actions[bot]@users.noreply.github.com"],
   "separateMajorMinor": true,
   "packageRules": [
     {
