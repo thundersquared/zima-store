@@ -10,6 +10,7 @@ services:
       AUTH_SECRET: ""
       AUTH_IS_REGISTRATION_ENABLED: "true"
       INGESTION_FOLDER_IS_ENABLED: "true"
+      DOCUMENTS_OCR_LANGUAGES: eng
     ports:
       - target: 1221
         published: "1221"
@@ -24,6 +25,10 @@ services:
       - type: bind
         source: /DATA/Media/Scans
         target: /app/ingestion
+      - type: bind
+        source: /DATA/AppData/papra/tessdata/eng.traineddata
+        target: /app/eng.traineddata
+        read_only: true
     network_mode: bridge
     restart: unless-stopped
     cap_drop:
@@ -47,6 +52,9 @@ services:
         - container: INGESTION_FOLDER_IS_ENABLED
           description:
             en_US: Watches /DATA/Media/Scans and imports files dropped into a subfolder named after a Papra organization ID, deleting each file once imported. Files at the top level are skipped.
+        - container: DOCUMENTS_OCR_LANGUAGES
+          description:
+            en_US: 'Comma-separated Tesseract language codes used to OCR uploaded documents, most used first, for example ron,ita,eng. Mount /app/LANG.traineddata for every language listed: an unmounted language is downloaded from cdn.jsdelivr.net on every OCR run, and when that download fails Papra exits and restarts.'
       ports:
         - container: "1221"
           description:
@@ -61,6 +69,9 @@ services:
         - container: /app/ingestion
           description:
             en_US: Ingestion folder shared with scanservjs. Files in /DATA/Media/Scans/ORGANIZATION_ID are imported into that organization and then deleted; failed imports move to an ingestion-error subfolder. Each organization folder must be writable by PUID and PGID.
+        - container: /app/eng.traineddata
+          description:
+            en_US: Optional local English OCR data, read from /DATA/AppData/papra/tessdata/eng.traineddata so OCR works without downloading it each time. Papra only reads language files from its working directory, so each language in DOCUMENTS_OCR_LANGUAGES needs its own /app/LANG.traineddata mount. A missing file falls back to downloading.
 
 x-casaos:
   id: com.thundersquared.papra
@@ -93,7 +104,18 @@ x-casaos:
         not match the browser address. Papra runs as uid/gid 1000 by default;
         create /DATA/AppData/papra/db and /DATA/Media/Documents and chown
         /DATA/AppData/papra and /DATA/Media/Documents to 1000:1000 on the host
-        before installing. Registration is open until
+        before installing. Papra OCRs uploads in the DOCUMENTS_OCR_LANGUAGES
+        languages and downloads that language data from cdn.jsdelivr.net on
+        every run, because it cannot cache inside its read-only working
+        directory. To keep it local, download each language once, for example
+        curl -fL https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz
+        | gunzip > /DATA/AppData/papra/tessdata/eng.traineddata, and add a
+        read-only mount of /DATA/AppData/papra/tessdata/LANG.traineddata to
+        /app/LANG.traineddata for every language besides English, which is
+        already mounted. Mount every listed language: when a download fails,
+        for example without Internet access, Papra exits and restarts instead
+        of skipping OCR. If Docker created an empty directory in place of a
+        missing file, remove it before downloading. Registration is open until
         you set AUTH_IS_REGISTRATION_ENABLED to false, so create your account
         right after installing and keep port 1221 on a trusted LAN. To import
         scans automatically, copy your organization ID from the Papra URL

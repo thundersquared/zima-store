@@ -136,6 +136,20 @@ browser. Registration stays open until `AUTH_IS_REGISTRATION_ENABLED` is set
 to `false`; create the first account, then close it. Outgoing email stays in
 dry-run mode, so invitations and password resets are not delivered.
 
+Papra OCRs uploads with tesseract.js in the `DOCUMENTS_OCR_LANGUAGES` languages
+(comma separated, `eng` by default). The image has no Tesseract data, and
+tesseract.js only caches language files in Papra's working directory `/app`,
+which is read-only for the app user and holds the web client, so it cannot be
+mounted over. Each language is therefore downloaded from `cdn.jsdelivr.net` on
+every OCR run unless `/app/<lang>.traineddata` is bind-mounted. English is
+mounted read-only from `/DATA/AppData/papra/tessdata/eng.traineddata`; add one
+mount per extra language. Papra 26.7.0 exits when a language download fails
+(tesseract.js raises it as an uncaught exception), so an unmounted language
+without outbound HTTPS turns every OCR run into a container restart. A missing
+mounted file still falls back to the download, but
+Docker leaves an empty directory at the missing path, which has to be removed
+before the file is downloaded there.
+
 CUPS uses `ghcr.io/thundersquared/cups-pantum`, which bundles the Pantum
 1.1.186 driver (P2500W and related models) on Ubuntu 26.04 LTS. That image
 publishes only a moving `main` tag, so the store assigns a counter version. Remote
