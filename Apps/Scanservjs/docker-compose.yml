@@ -1,0 +1,92 @@
+name: thundersquared-scanservjs
+services:
+  scanservjs:
+    # renovate: datasource=docker depName=sbs20/scanservjs
+    image: sbs20/scanservjs:v3.3.0@sha256:7a0c0dfd546f483c2fe8c5ccdcd8fc96301a41fb0d4309747fc8268108defb6a
+    environment:
+      TZ: $TZ
+      OCR_LANG: ""
+    ports:
+      - target: 8080
+        published: "8088"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /DATA/Media/Scans
+        target: /var/lib/scanservjs/output
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    network_mode: bridge
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by scanservjs for scan file names. Defaults to the host's system timezone.
+        - container: OCR_LANG
+          description:
+            en_US: Optional Tesseract OCR language override, for example eng or deu. Leave empty for the scanservjs default.
+      ports:
+        - container: "8080"
+          description:
+            en_US: scanservjs HTTP web interface and API, published on host port 8088. It has no authentication; keep it on a trusted LAN.
+      volumes:
+        - container: /var/lib/scanservjs/output
+          description:
+            en_US: Scanned documents and images. Stored at /DATA/Media/Scans on the host.
+      devices:
+        - container: /dev/bus/usb
+          description:
+            en_US: Host USB bus, so SANE can reach a USB scanner such as a CanoScan LiDE. Exposes every USB device on the host to the container; the scanner must be plugged in before the container starts.
+
+x-casaos:
+  id: com.thundersquared.scanservjs
+  main: scanservjs
+  index: /
+  port_map: "8088"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/sbs20/scanservjs@v3.3.0/app-ui/src/icons/android-chrome-512x512.png
+  title:
+    en_US: scanservjs
+  tagline:
+    en_US: Web UI for SANE scanners with OCR
+  description:
+    en_US: >-
+      scanservjs is a web front end for SANE scanners. It previews, crops,
+      and scans to PDF, TIFF, JPG, or OCR-searchable PDF with Tesseract, and
+      writes the results to /DATA/Media/Scans so other apps such as Papra can
+      pick them up. It runs in bridge mode on HTTP port 8088 with every Linux
+      capability dropped except DAC_OVERRIDE, which lets the root container
+      process write into an existing scans directory owned by another user.
+      The host USB bus (/dev/bus/usb) is passed through for USB scanners
+      supported by SANE, such as the CanoScan LiDE series.
+  tips:
+    before_install:
+      en_US: >-
+        scanservjs has no login, so keep port 8088 on a trusted LAN and put any
+        external access behind an authenticated reverse proxy, VPN, or tunnel.
+        The whole host USB bus (/dev/bus/usb) is passed through, which gives
+        the container raw access to every USB device on the host, not only the
+        scanner. Plug the scanner in before installing or starting the app:
+        device nodes created after the container starts are not visible until
+        it restarts. Scans are written to /DATA/Media/Scans as root.
+  author: thundersquared
+  developer: sbs20
+  category: Productivity
+  architectures:
+    - amd64
+    - arm64
+  version_prefix: "v"
+  version: "3.3.0"
+  release_notes:
+    en_US: Pinned sbs20/scanservjs:v3.3.0 at sha256:7a0c0dfd546f.
+  website: https://github.com/sbs20/scanservjs
+  repo: https://github.com/sbs20/scanservjs
+  support: https://github.com/sbs20/scanservjs/issues
+  docs: https://github.com/sbs20/scanservjs/blob/master/docs/02-docker.md

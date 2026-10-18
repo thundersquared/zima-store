@@ -41,12 +41,20 @@ source definition.
 - Proxmox Backup Server: dockurr bridge-mode HTTPS UI on TCP 8007 with persistent config and datastore.
 - Scrutiny: omnibus bridge-mode S.M.A.R.T. dashboard on TCP 8080 with bundled
   collector and InfluxDB, and per-disk passthrough.
+- scanservjs: bridge-mode SANE scanner web UI on TCP 8088 with OCR and USB
+  scanner passthrough, writing scans to `/DATA/Media/Scans`.
+- Papra: rootless bridge-mode document archive on TCP 1221 with its database in
+  `/DATA/AppData/papra`, documents in `/DATA/Media/Documents`, and an ingestion
+  folder on `/DATA/Media/Scans`.
+- CUPS: bridge-mode print server on TCP 631 with the Pantum Linux driver,
+  amd64 only.
 
 Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both
-`amd64` and `arm64` are required. Hardware access remains opt-in except for
+`amd64` and `arm64` are required, except for CUPS, which is amd64 only because
+Pantum ships its driver for x86_64 only. Hardware access remains opt-in except for
 the documented Home Assistant Bluetooth D-Bus path, TVHeadend GPU/DVB
-devices, and Scrutiny disk devices. Host networking is used only for
+devices, Scrutiny disk devices, and the scanservjs USB bus. Host networking is used only for
 documented discovery or VPN exceptions. WAN exposure remains an
 opt-in edit documented in the app metadata.
 
@@ -104,6 +112,46 @@ drives need the controller device (`/dev/nvme0`) plus `SYS_ADMIN`, which grants
 broad host administration rights and stays opt-in. The collector runs once at
 startup and then on `COLLECTOR_CRON_SCHEDULE` (daily at midnight by default).
 The InfluxDB volume stores an admin token; treat backups as sensitive.
+
+scanservjs has no authentication, so keep TCP 8088 on a trusted LAN. It keeps
+no state besides the scans in `/DATA/Media/Scans`, which it writes as root with
+only `DAC_OVERRIDE` retained so it can write into a directory owned by another
+user. The whole host USB bus (`/dev/bus/usb`) is passed through for USB
+scanners such as the CanoScan LiDE series. That grants raw access to every USB
+device on the host, so it is a documented hardware exception; narrow it to the
+scanner's `/dev/bus/usb/BUS/DEVICE` node if its address is stable. Device nodes
+created after the container starts are not visible until it restarts, so plug
+the scanner in first. Network scanners are not configured.
+
+Papra uses the rootless image and runs as `PUID:PGID` with every capability
+dropped, so `/DATA/AppData/papra` (with a `db` subdirectory) and
+`/DATA/Media/Documents` must exist and be owned by those IDs before install.
+It refuses to start until `AUTH_SECRET` is set to a non-default value of at
+least 32 characters, and `APP_BASE_URL` must match the address used in the
+browser. Registration stays open until `AUTH_IS_REGISTRATION_ENABLED` is set
+to `false`; create the first account, then close it. Outgoing email stays in
+dry-run mode, so invitations and password resets are not delivered.
+
+CUPS uses `ghcr.io/thundersquared/cups-pantum`, which bundles the Pantum
+1.1.186 driver (P2500W and related models) on Ubuntu 26.04 LTS. That image
+publishes only a moving `main` tag, so the store assigns a counter version. Remote
+administration and printer sharing are enabled, so anyone on the LAN can print,
+and the `admin` account can add, change, or delete printers. `ADMIN_PASSWORD`
+must be set or the container refuses to start. CUPS asks remote clients to
+switch to TLS before it accepts credentials, but it still accepts the admin
+password over plain HTTP, so keep TCP 631 on a trusted LAN. Bridge mode blocks
+Bonjour, so add printers by URI (for example `socket://PRINTER_IP:9100`) and
+add the shared queue on clients as `ipp://ZIMAOS_IP:631/printers/QUEUE`. The
+container keeps only the capabilities cupsd needs to bind port 631, switch to
+the `lp` user for filters, and manage its spool and configuration files.
+
+Papra's ingestion folder is enabled and mounted on `/DATA/Media/Scans`, the
+scanservjs output. Papra only imports files inside a subfolder named after an
+organization ID and deletes each file once imported, so top-level scans are
+left alone. To import scans automatically, create
+`/DATA/Media/Scans/<organization-id>` owned by `PUID:PGID` and point the
+scanservjs scans volume at it. Papra deletes files there after import, so they
+also disappear from the scanservjs file list.
 
 ## Build
 

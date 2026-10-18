@@ -1,0 +1,97 @@
+name: thundersquared-cups
+services:
+  cups:
+    # renovate: datasource=docker depName=ghcr.io/thundersquared/cups-pantum
+    image: ghcr.io/thundersquared/cups-pantum:main@sha256:ed7d19e21a3d992deb6dada5bd6d760057e4ddeba97fe4a6eeb7773cac6dc3fb
+    environment:
+      TZ: $TZ
+      ADMIN_PASSWORD: ""
+    ports:
+      - target: 631
+        published: "631"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /DATA/AppData/cups
+        target: /etc/cups
+    network_mode: bridge
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - AUDIT_WRITE
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - FSETID
+      - KILL
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by CUPS for job times and logs. Defaults to the host's system timezone.
+        - container: ADMIN_PASSWORD
+          description:
+            en_US: Required. Password for the CUPS web administration user "admin". The container refuses to start while it is empty.
+      ports:
+        - container: "631"
+          description:
+            en_US: CUPS web interface and IPP print service. Clients print to ipp://HOST:631/printers/QUEUE. Keep it on a trusted LAN.
+      volumes:
+        - container: /etc/cups
+          description:
+            en_US: Persistent CUPS configuration, printer queues, and PPDs. Seeded with defaults on first start. Stored at /DATA/AppData/cups on the host.
+
+x-casaos:
+  id: com.thundersquared.cups
+  main: cups
+  index: /
+  port_map: "631"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/cups.svg
+  title:
+    en_US: CUPS
+  tagline:
+    en_US: Network print server with Pantum laser printer drivers
+  description:
+    en_US: >-
+      CUPS print server on Ubuntu 26.04 LTS bundling the Pantum Linux driver
+      (1.1.186) for Pantum laser printers such as the P2500W, plus the
+      Gutenprint, HPLIP, and Foomatic driver sets. It runs in bridge mode on port 631, which serves
+      both the web administration interface and IPP printing, with remote
+      administration and printer sharing enabled. Printers are reached over
+      the network, so add them with an explicit URI such as
+      socket://PRINTER_IP:9100; bridge mode blocks Bonjour discovery in both
+      directions. The image is amd64 only because Pantum publishes its driver
+      for x86_64 only.
+  tips:
+    before_install:
+      en_US: >-
+        Set ADMIN_PASSWORD before installing; it becomes the password of the
+        CUPS "admin" user, which can add, change, and delete printers from any
+        LAN client. Keep port 631 on a trusted LAN. After installing, open
+        Administration > Add Printer, sign in as admin, choose AppSocket/HP
+        JetDirect with socket://PRINTER_IP:9100 (give the printer a fixed IP),
+        and pick the Pantum P2500 Series driver. Clients add the shared queue
+        as ipp://ZIMAOS_IP:631/printers/QUEUE_NAME because printers are not
+        advertised over Bonjour.
+  author: thundersquared
+  developer: thundersquared
+  category: Others
+  architectures:
+    - amd64
+  # The image publishes only a moving main tag, so the store assigns a counter
+  # version here. Each digest change bumps the patch component, which is the
+  # only update signal the ZimaOS client can compare.
+  version: "1.0.0"
+  release_notes:
+    en_US: Pinned ghcr.io/thundersquared/cups-pantum:main at sha256:ed7d19e21a3d.
+  website: https://openprinting.github.io/cups/
+  repo: https://github.com/thundersquared/cups-pantum
+  support: https://github.com/thundersquared/cups-pantum/issues
+  docs: https://github.com/thundersquared/cups-pantum#readme
