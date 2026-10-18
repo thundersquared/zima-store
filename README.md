@@ -133,9 +133,8 @@ to `false`; create the first account, then close it. Outgoing email stays in
 dry-run mode, so invitations and password resets are not delivered.
 
 CUPS uses `ghcr.io/thundersquared/cups-pantum`, which bundles the Pantum
-1.1.123 driver (P2500W and related models) on Debian 11. That image publishes
-only a moving `main` tag, so the store assigns a counter version, and its
-Debian 11 base no longer receives regular security updates. Remote
+1.1.186 driver (P2500W and related models) on Ubuntu 26.04 LTS. That image
+publishes only a moving `main` tag, so the store assigns a counter version. Remote
 administration and printer sharing are enabled, so anyone on the LAN can print,
 and the `admin` account can add, change, or delete printers. `ADMIN_PASSWORD`
 must be set or the container refuses to start. CUPS asks remote clients to

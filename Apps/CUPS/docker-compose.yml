@@ -2,7 +2,7 @@ name: thundersquared-cups
 services:
   cups:
     # renovate: datasource=docker depName=ghcr.io/thundersquared/cups-pantum
-    image: ghcr.io/thundersquared/cups-pantum:main@sha256:2b07c85be19a1c1e0f1d2720b60606c64f9da0887e08fffca7889a3fe0eb91af
+    image: ghcr.io/thundersquared/cups-pantum:main@sha256:ed7d19e21a3d992deb6dada5bd6d760057e4ddeba97fe4a6eeb7773cac6dc3fb
     environment:
       TZ: $TZ
       ADMIN_PASSWORD: ""
@@ -60,9 +60,9 @@ x-casaos:
     en_US: Network print server with Pantum laser printer drivers
   description:
     en_US: >-
-      CUPS print server bundling the Pantum Linux driver (1.1.123) for Pantum
-      laser printers such as the P2500W, plus the Debian Gutenprint, HPLIP, and
-      Foomatic driver sets. It runs in bridge mode on port 631, which serves
+      CUPS print server on Ubuntu 26.04 LTS bundling the Pantum Linux driver
+      (1.1.186) for Pantum laser printers such as the P2500W, plus the
+      Gutenprint, HPLIP, and Foomatic driver sets. It runs in bridge mode on port 631, which serves
       both the web administration interface and IPP printing, with remote
       administration and printer sharing enabled. Printers are reached over
       the network, so add them with an explicit URI such as
@@ -90,7 +90,7 @@ x-casaos:
   # only update signal the ZimaOS client can compare.
   version: "1.0.0"
   release_notes:
-    en_US: Pinned ghcr.io/thundersquared/cups-pantum:main at sha256:2b07c85be19a.
+    en_US: Pinned ghcr.io/thundersquared/cups-pantum:main at sha256:ed7d19e21a3d.
   website: https://openprinting.github.io/cups/
   repo: https://github.com/thundersquared/cups-pantum
   support: https://github.com/thundersquared/cups-pantum/issues
