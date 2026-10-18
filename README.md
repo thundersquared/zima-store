@@ -46,10 +46,13 @@ source definition.
 - Papra: rootless bridge-mode document archive on TCP 1221 with its database in
   `/DATA/AppData/papra`, documents in `/DATA/Media/Documents`, and an ingestion
   folder on `/DATA/Media/Scans`.
+- CUPS: bridge-mode print server on TCP 631 with the Pantum Linux driver,
+  amd64 only.
 
 Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both
-`amd64` and `arm64` are required. Hardware access remains opt-in except for
+`amd64` and `arm64` are required, except for CUPS, which is amd64 only because
+Pantum ships its driver for x86_64 only. Hardware access remains opt-in except for
 the documented Home Assistant Bluetooth D-Bus path, TVHeadend GPU/DVB
 devices, Scrutiny disk devices, and the scanservjs USB bus. Host networking is used only for
 documented discovery or VPN exceptions. WAN exposure remains an
@@ -128,6 +131,20 @@ least 32 characters, and `APP_BASE_URL` must match the address used in the
 browser. Registration stays open until `AUTH_IS_REGISTRATION_ENABLED` is set
 to `false`; create the first account, then close it. Outgoing email stays in
 dry-run mode, so invitations and password resets are not delivered.
+
+CUPS uses `ghcr.io/thundersquared/cups-pantum`, which bundles the Pantum
+1.1.123 driver (P2500W and related models) on Debian 11. That image publishes
+only a moving `main` tag, so the store assigns a counter version, and its
+Debian 11 base no longer receives regular security updates. Remote
+administration and printer sharing are enabled, so anyone on the LAN can print,
+and the `admin` account can add, change, or delete printers. `ADMIN_PASSWORD`
+must be set or the container refuses to start. CUPS asks remote clients to
+switch to TLS before it accepts credentials, but it still accepts the admin
+password over plain HTTP, so keep TCP 631 on a trusted LAN. Bridge mode blocks
+Bonjour, so add printers by URI (for example `socket://PRINTER_IP:9100`) and
+add the shared queue on clients as `ipp://ZIMAOS_IP:631/printers/QUEUE`. The
+container keeps only the capabilities cupsd needs to bind port 631, switch to
+the `lp` user for filters, and manage its spool and configuration files.
 
 Papra's ingestion folder is enabled and mounted on `/DATA/Media/Scans`, the
 scanservjs output. Papra only imports files inside a subfolder named after an
