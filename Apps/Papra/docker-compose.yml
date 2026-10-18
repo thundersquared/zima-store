@@ -1,0 +1,102 @@
+name: thundersquared-papra
+services:
+  papra:
+    # renovate: datasource=docker depName=ghcr.io/papra-hq/papra
+    image: ghcr.io/papra-hq/papra:26.7.0-rootless@sha256:bf4a66e776d0a40d71543747a2e17af800204b4a81d19f7951b8552c8032dbeb
+    user: $PUID:$PGID
+    environment:
+      TZ: $TZ
+      APP_BASE_URL: ""
+      AUTH_SECRET: ""
+      AUTH_IS_REGISTRATION_ENABLED: "true"
+    ports:
+      - target: 1221
+        published: "1221"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /DATA/AppData/papra
+        target: /app/app-data
+      - type: bind
+        source: /DATA/Media/Documents
+        target: /app/app-data/documents
+    network_mode: bridge
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by Papra. Defaults to the host's system timezone.
+        - container: APP_BASE_URL
+          description:
+            en_US: Required. URL used to open Papra, for example http://192.168.1.10:1221. Login fails when it does not match the browser address.
+        - container: AUTH_SECRET
+          description:
+            en_US: Required. Random secret of at least 32 characters used to sign sessions, for example from openssl rand -hex 48. Changing it signs every user out.
+        - container: AUTH_IS_REGISTRATION_ENABLED
+          description:
+            en_US: Allows new accounts to sign up. Create your account, then set this to false so nobody else on the network can register.
+      ports:
+        - container: "1221"
+          description:
+            en_US: Papra HTTP web interface and API.
+      volumes:
+        - container: /app/app-data
+          description:
+            en_US: Persistent Papra SQLite database and configuration. Stored at /DATA/AppData/papra on the host and must be writable by PUID and PGID.
+        - container: /app/app-data/documents
+          description:
+            en_US: Stored document files, organised by Papra organization. Stored at /DATA/Media/Documents on the host and must be writable by PUID and PGID. Manage files through Papra rather than editing them in place.
+
+x-casaos:
+  id: com.thundersquared.papra
+  main: papra
+  index: /
+  port_map: "1221"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/papra.svg
+  title:
+    en_US: Papra
+  tagline:
+    en_US: Minimalistic document management and archiving
+  description:
+    en_US: >-
+      Papra is a self-hosted document archive with full-text search, tags, and
+      organizations. This definition uses the rootless image running as PUID
+      and PGID in bridge mode on HTTP port 1221 with every Linux capability
+      dropped. The SQLite database lives in /DATA/AppData/papra and document
+      files in /DATA/Media/Documents. Outgoing email is disabled, so password
+      resets and invitations are not delivered. Scans from scanservjs in
+      /DATA/Media/Scans can be uploaded through the web interface.
+  tips:
+    before_install:
+      en_US: >-
+        Set APP_BASE_URL to the address you will open Papra on (for example
+        http://192.168.1.10:1221) and AUTH_SECRET to a random string of at
+        least 32 characters (openssl rand -hex 48). Papra refuses to start
+        without a non-default secret, and login fails when APP_BASE_URL does
+        not match the browser address. Papra runs as uid/gid 1000 by default;
+        create /DATA/AppData/papra/db and /DATA/Media/Documents and chown
+        /DATA/AppData/papra and /DATA/Media/Documents to 1000:1000 on the host
+        before installing. Registration is open until
+        you set AUTH_IS_REGISTRATION_ENABLED to false, so create your account
+        right after installing and keep port 1221 on a trusted LAN. The
+        database holds session data; treat backups as sensitive.
+  author: thundersquared
+  developer: Papra
+  category: Productivity
+  architectures:
+    - amd64
+    - arm64
+  version_suffix: "-rootless"
+  version: "26.7.0"
+  release_notes:
+    en_US: Pinned ghcr.io/papra-hq/papra:26.7.0-rootless at sha256:bf4a66e776d0.
+  website: https://papra.app/
+  repo: https://github.com/papra-hq/papra
+  support: https://github.com/papra-hq/papra/issues
+  docs: https://docs.papra.app/self-hosting/using-docker-compose/

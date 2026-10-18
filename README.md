@@ -41,6 +41,10 @@ source definition.
 - Proxmox Backup Server: dockurr bridge-mode HTTPS UI on TCP 8007 with persistent config and datastore.
 - Scrutiny: omnibus bridge-mode S.M.A.R.T. dashboard on TCP 8080 with bundled
   collector and InfluxDB, and per-disk passthrough.
+- scanservjs: bridge-mode SANE scanner web UI on TCP 8088 with OCR, writing
+  scans to `/DATA/Media/Scans`.
+- Papra: rootless bridge-mode document archive on TCP 1221 with its database in
+  `/DATA/AppData/papra` and documents in `/DATA/Media/Documents`.
 
 Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both
@@ -104,6 +108,23 @@ drives need the controller device (`/dev/nvme0`) plus `SYS_ADMIN`, which grants
 broad host administration rights and stays opt-in. The collector runs once at
 startup and then on `COLLECTOR_CRON_SCHEDULE` (daily at midnight by default).
 The InfluxDB volume stores an admin token; treat backups as sensitive.
+
+scanservjs has no authentication, so keep TCP 8088 on a trusted LAN. It keeps
+no state besides the scans in `/DATA/Media/Scans`, which it writes as root with
+only `DAC_OVERRIDE` retained so it can write into a directory owned by another
+user. Bridge mode blocks mDNS, so driverless network scanners must be listed in
+`AIRSCAN_DEVICES` (saned and PIXMA hosts have their own variables). USB
+scanners are opt-in: map the scanner's `/dev/bus/usb/BUS/DEVICE` node rather
+than running privileged.
+
+Papra uses the rootless image and runs as `PUID:PGID` with every capability
+dropped, so `/DATA/AppData/papra` (with a `db` subdirectory) and
+`/DATA/Media/Documents` must exist and be owned by those IDs before install.
+It refuses to start until `AUTH_SECRET` is set to a non-default value of at
+least 32 characters, and `APP_BASE_URL` must match the address used in the
+browser. Registration stays open until `AUTH_IS_REGISTRATION_ENABLED` is set
+to `false`; create the first account, then close it. Outgoing email stays in
+dry-run mode, so invitations and password resets are not delivered.
 
 ## Build
 
