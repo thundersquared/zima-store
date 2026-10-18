@@ -31,7 +31,7 @@ services:
             en_US: Timezone used by scanservjs for scan file names. Defaults to the host's system timezone.
         - container: OCR_LANG
           description:
-            en_US: Optional Tesseract OCR language override, for example eng or deu. Leave empty for the scanservjs default.
+            en_US: 'Optional Tesseract OCR language, using three-letter Tesseract codes joined with +, for example deu+eng. Bundled: ces, chi_sim, deu, eng, fra, ita, nld, pol, por, rus, spa, tur. Leave empty for eng. Any other language (for example ron for Romanian) fails OCR scans until its .traineddata file is mounted into /usr/share/tesseract-ocr/5/tessdata.'
       ports:
         - container: "8080"
           description:
@@ -75,7 +75,14 @@ x-casaos:
         the container raw access to every USB device on the host, not only the
         scanner. Plug the scanner in before installing or starting the app:
         device nodes created after the container starts are not visible until
-        it restarts. Scans are written to /DATA/Media/Scans as root.
+        it restarts. Scans are written to /DATA/Media/Scans as root. OCR
+        bundles ces, chi_sim, deu, eng, fra, ita, nld, pol, por, rus, spa, and
+        tur. For another language, download its file from
+        github.com/tesseract-ocr/tessdata_fast (for example ron.traineddata for
+        Romanian) to /DATA/AppData/scanservjs/tessdata, bind-mount that file to
+        /usr/share/tesseract-ocr/5/tessdata/ron.traineddata, and set OCR_LANG to
+        ron or ron+eng. Download the file before adding the mount, because
+        Docker replaces a missing source file with an empty directory.
   author: thundersquared
   developer: sbs20
   category: Productivity
