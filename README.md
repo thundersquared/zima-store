@@ -121,7 +121,11 @@ scanners such as the CanoScan LiDE series. That grants raw access to every USB
 device on the host, so it is a documented hardware exception; narrow it to the
 scanner's `/dev/bus/usb/BUS/DEVICE` node if its address is stable. Device nodes
 created after the container starts are not visible until it restarts, so plug
-the scanner in first. Network scanners are not configured.
+the scanner in first. Network scanners are not configured. OCR bundles Tesseract
+data for ces, chi_sim, deu, eng, fra, ita, nld, pol, por, rus, spa, and tur;
+`OCR_LANG` takes Tesseract codes such as `deu+eng`, and any other language (for
+example `ron`) needs its `.traineddata` file bind-mounted into
+`/usr/share/tesseract-ocr/5/tessdata` first, or OCR scans fail.
 
 Papra uses the rootless image and runs as `PUID:PGID` with every capability
 dropped, so `/DATA/AppData/papra` (with a `db` subdirectory) and
