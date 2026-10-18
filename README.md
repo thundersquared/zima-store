@@ -44,7 +44,8 @@ source definition.
 - scanservjs: bridge-mode SANE scanner web UI on TCP 8088 with OCR and USB
   scanner passthrough, writing scans to `/DATA/Media/Scans`.
 - Papra: rootless bridge-mode document archive on TCP 1221 with its database in
-  `/DATA/AppData/papra` and documents in `/DATA/Media/Documents`.
+  `/DATA/AppData/papra`, documents in `/DATA/Media/Documents`, and an ingestion
+  folder on `/DATA/Media/Scans`.
 
 Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both
@@ -127,6 +128,14 @@ least 32 characters, and `APP_BASE_URL` must match the address used in the
 browser. Registration stays open until `AUTH_IS_REGISTRATION_ENABLED` is set
 to `false`; create the first account, then close it. Outgoing email stays in
 dry-run mode, so invitations and password resets are not delivered.
+
+Papra's ingestion folder is enabled and mounted on `/DATA/Media/Scans`, the
+scanservjs output. Papra only imports files inside a subfolder named after an
+organization ID and deletes each file once imported, so top-level scans are
+left alone. To import scans automatically, create
+`/DATA/Media/Scans/<organization-id>` owned by `PUID:PGID` and point the
+scanservjs scans volume at it. Papra deletes files there after import, so they
+also disappear from the scanservjs file list.
 
 ## Build
 

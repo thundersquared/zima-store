@@ -9,6 +9,7 @@ services:
       APP_BASE_URL: ""
       AUTH_SECRET: ""
       AUTH_IS_REGISTRATION_ENABLED: "true"
+      INGESTION_FOLDER_IS_ENABLED: "true"
     ports:
       - target: 1221
         published: "1221"
@@ -20,6 +21,9 @@ services:
       - type: bind
         source: /DATA/Media/Documents
         target: /app/app-data/documents
+      - type: bind
+        source: /DATA/Media/Scans
+        target: /app/ingestion
     network_mode: bridge
     restart: unless-stopped
     cap_drop:
@@ -40,6 +44,9 @@ services:
         - container: AUTH_IS_REGISTRATION_ENABLED
           description:
             en_US: Allows new accounts to sign up. Create your account, then set this to false so nobody else on the network can register.
+        - container: INGESTION_FOLDER_IS_ENABLED
+          description:
+            en_US: Watches /DATA/Media/Scans and imports files dropped into a subfolder named after a Papra organization ID, deleting each file once imported. Files at the top level are skipped.
       ports:
         - container: "1221"
           description:
@@ -51,6 +58,9 @@ services:
         - container: /app/app-data/documents
           description:
             en_US: Stored document files, organised by Papra organization. Stored at /DATA/Media/Documents on the host and must be writable by PUID and PGID. Manage files through Papra rather than editing them in place.
+        - container: /app/ingestion
+          description:
+            en_US: Ingestion folder shared with scanservjs. Files in /DATA/Media/Scans/ORGANIZATION_ID are imported into that organization and then deleted; failed imports move to an ingestion-error subfolder. Each organization folder must be writable by PUID and PGID.
 
 x-casaos:
   id: com.thundersquared.papra
@@ -70,8 +80,9 @@ x-casaos:
       and PGID in bridge mode on HTTP port 1221 with every Linux capability
       dropped. The SQLite database lives in /DATA/AppData/papra and document
       files in /DATA/Media/Documents. Outgoing email is disabled, so password
-      resets and invitations are not delivered. Scans from scanservjs in
-      /DATA/Media/Scans can be uploaded through the web interface.
+      resets and invitations are not delivered. The ingestion folder watches
+      /DATA/Media/Scans, the scanservjs output: files placed in a subfolder
+      named after a Papra organization ID are imported and then deleted.
   tips:
     before_install:
       en_US: >-
@@ -84,8 +95,12 @@ x-casaos:
         /DATA/AppData/papra and /DATA/Media/Documents to 1000:1000 on the host
         before installing. Registration is open until
         you set AUTH_IS_REGISTRATION_ENABLED to false, so create your account
-        right after installing and keep port 1221 on a trusted LAN. The
-        database holds session data; treat backups as sensitive.
+        right after installing and keep port 1221 on a trusted LAN. To import
+        scans automatically, copy your organization ID from the Papra URL
+        (/organizations/ID), create /DATA/Media/Scans/ID owned by 1000:1000,
+        and change the scanservjs scans volume to that folder; Papra deletes
+        each file after importing it. The database holds session data; treat
+        backups as sensitive.
   author: thundersquared
   developer: Papra
   category: Productivity
