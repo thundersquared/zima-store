@@ -41,8 +41,8 @@ source definition.
 - Proxmox Backup Server: dockurr bridge-mode HTTPS UI on TCP 8007 with persistent config and datastore.
 - Scrutiny: omnibus bridge-mode S.M.A.R.T. dashboard on TCP 8080 with bundled
   collector and InfluxDB, and per-disk passthrough.
-- scanservjs: bridge-mode SANE scanner web UI on TCP 8088 with OCR, writing
-  scans to `/DATA/Media/Scans`.
+- scanservjs: bridge-mode SANE scanner web UI on TCP 8088 with OCR and USB
+  scanner passthrough, writing scans to `/DATA/Media/Scans`.
 - Papra: rootless bridge-mode document archive on TCP 1221 with its database in
   `/DATA/AppData/papra` and documents in `/DATA/Media/Documents`.
 
@@ -50,7 +50,7 @@ Every app image uses a pinned manifest-list digest and, where upstream
 publishes one, an explicit version tag. Both
 `amd64` and `arm64` are required. Hardware access remains opt-in except for
 the documented Home Assistant Bluetooth D-Bus path, TVHeadend GPU/DVB
-devices, and Scrutiny disk devices. Host networking is used only for
+devices, Scrutiny disk devices, and the scanservjs USB bus. Host networking is used only for
 documented discovery or VPN exceptions. WAN exposure remains an
 opt-in edit documented in the app metadata.
 
@@ -112,10 +112,12 @@ The InfluxDB volume stores an admin token; treat backups as sensitive.
 scanservjs has no authentication, so keep TCP 8088 on a trusted LAN. It keeps
 no state besides the scans in `/DATA/Media/Scans`, which it writes as root with
 only `DAC_OVERRIDE` retained so it can write into a directory owned by another
-user. Bridge mode blocks mDNS, so driverless network scanners must be listed in
-`AIRSCAN_DEVICES` (saned and PIXMA hosts have their own variables). USB
-scanners are opt-in: map the scanner's `/dev/bus/usb/BUS/DEVICE` node rather
-than running privileged.
+user. The whole host USB bus (`/dev/bus/usb`) is passed through for USB
+scanners such as the CanoScan LiDE series. That grants raw access to every USB
+device on the host, so it is a documented hardware exception; narrow it to the
+scanner's `/dev/bus/usb/BUS/DEVICE` node if its address is stable. Device nodes
+created after the container starts are not visible until it restarts, so plug
+the scanner in first. Network scanners are not configured.
 
 Papra uses the rootless image and runs as `PUID:PGID` with every capability
 dropped, so `/DATA/AppData/papra` (with a `db` subdirectory) and
