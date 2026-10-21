@@ -45,10 +45,10 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  version: "2026.10.1"
-  update_at: "2026-10-16"
+  version: "2026.10.2"
+  update_at: "2026-10-21"
   release_notes:
-    en_US: Pinned cloudflare/cloudflared:2026.10.1 at sha256:a15a3b50b8da.
+    en_US: Pinned cloudflare/cloudflared:2026.10.2 at sha256:0e56c13c7058.
   website: https://www.cloudflare.com/products/tunnel/
   repo: https://github.com/cloudflare/cloudflared
   support: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
