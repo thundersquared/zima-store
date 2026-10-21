@@ -69,10 +69,10 @@ x-casaos:
     - amd64
     - arm64
   version_prefix: "v"
-  version: "1.104.1"
-  update_at: "2026-10-16"
+  version: "1.104.2"
+  update_at: "2026-10-21"
   release_notes:
-    en_US: Pinned ghcr.io/tailscale/tailscale:v1.104.1 at sha256:87c55d6be56a.
+    en_US: Pinned ghcr.io/tailscale/tailscale:v1.104.2 at sha256:b11583ad2e93.
   website: https://tailscale.com/
   repo: https://github.com/tailscale/tailscale
   support: https://tailscale.com/kb/
