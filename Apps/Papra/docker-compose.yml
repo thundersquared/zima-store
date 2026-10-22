@@ -130,9 +130,10 @@ x-casaos:
     - amd64
     - arm64
   version_suffix: "-rootless"
-  version: "26.7.0"
+  version: "26.7.1"
+  update_at: '2026-10-22'
   release_notes:
-    en_US: Pinned ghcr.io/papra-hq/papra:26.7.0-rootless at sha256:bf4a66e776d0.
+    en_US: Pinned ghcr.io/papra-hq/papra:26.7.1-rootless at sha256:d1f596a35332.
   website: https://papra.app/
   repo: https://github.com/papra-hq/papra
   support: https://github.com/papra-hq/papra/issues
