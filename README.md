@@ -35,6 +35,8 @@ source definition.
 - Mosquitto: authenticated MQTT on TCP 1883 with first-run credential setup.
 - Tailscale: kernel-mode client with persistent state and interactive login.
 - Home Assistant: LinuxServer host-mode UI on TCP 8123 with zeroconf/mDNS/UPnP and Bluetooth discovery.
+- ESPHome: bridge-mode Device Builder dashboard on TCP 6052 with required
+  login and over-the-air updates to devices with fixed addresses.
 - Hermes Agent: gateway plus loopback-only dashboard on TCP 9119.
 - TVHeadend: bridge-mode UI and HTSP on TCP 9981 and 9982 with GPU and DVB tuner passthrough.
 - Zigbee2MQTT: bridge-mode Zigbee gateway on TCP 9442 with adapter hardware opt-in.
@@ -96,6 +98,22 @@ configured Home Assistant listeners directly on the host, so keep it
 trusted-LAN-only. Set `HOME_ASSISTANT_PUID` and `HOME_ASSISTANT_PGID` to the
 IDs owning the config directory. USB, serial, and other device mappings remain
 disabled by default.
+
+ESPHome runs in bridge mode on TCP 6052; keep it trusted-LAN-only. Bridge mode
+blocks mDNS, so the dashboard cannot resolve `.local` device names or discover
+new devices to adopt. Set `wifi: use_address:` (or `manual_ip:`) on every
+device so status checks and over-the-air updates reach it by IP; switching to
+host networking restores mDNS but exposes every dashboard listener directly on
+the host. `ESPHOME_USERNAME` defaults to `admin` and `ESPHOME_PASSWORD` is
+empty, which the dashboard rejects as a half-set pair, so it refuses to start
+until a password is set. Clearing both turns login off; do not. The container
+runs as root with every capability dropped except `DAC_OVERRIDE`; the ICMP
+status sweep uses unprivileged ping sockets, which Docker enables in
+bridge-mode containers, so it needs no `NET_RAW`. `/DATA/AppData/esphome` holds
+`secrets.yaml` with Wi-Fi passwords and device API and OTA keys, plus the
+PlatformIO toolchains downloaded on first build; treat backups as sensitive.
+No USB or serial device is mapped, so flash new boards from another machine
+or `https://web.esphome.io` and update them over the air afterwards.
 
 Jellyfin publishes UDP 7359 client discovery and UDP 1900 SSDP/DLNA discovery
 for trusted-LAN use. Keep both ports off untrusted networks; UDP 1900 also
