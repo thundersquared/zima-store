@@ -1,0 +1,108 @@
+name: thundersquared-esphome
+services:
+  esphome:
+    # renovate: datasource=docker depName=ghcr.io/esphome/esphome
+    image: ghcr.io/esphome/esphome:2026.10.1@sha256:eab8cd6b4f51077c3883af4cedc058280ddc34a94f3b2ffee23e9d2cd5f1db64
+    environment:
+      TZ: $TZ
+      # The dashboard exits when only one of the pair is set, so it refuses to
+      # start until a password is entered.
+      ESPHOME_USERNAME: admin
+      ESPHOME_PASSWORD: ""
+    ports:
+      - target: 6052
+        published: "6052"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /DATA/AppData/esphome
+        target: /config
+    networks:
+      - esphome
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    # DAC_OVERRIDE lets root write the config directory even if CasaOS owns it
+    # with a different UID.
+    cap_add:
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_US: Timezone used by the ESPHome dashboard and build logs.
+        - container: ESPHOME_USERNAME
+          description:
+            en_US: Dashboard login username. Defaults to admin.
+        - container: ESPHOME_PASSWORD
+          description:
+            en_US: >-
+              Required. Dashboard login password. The dashboard refuses to start
+              while it is empty and the username is set. Keep this secret.
+      ports:
+        - container: "6052"
+          description:
+            en_US: ESPHome dashboard web interface. Keep it on a trusted LAN.
+      volumes:
+        - container: /config
+          description:
+            en_US: >-
+              Persistent device YAML, secrets.yaml with Wi-Fi and API keys,
+              build output, and the PlatformIO toolchain cache. Stored at
+              /DATA/AppData/esphome on the host.
+
+networks:
+  esphome:
+    driver: bridge
+
+x-casaos:
+  id: com.thundersquared.esphome
+  main: esphome
+  index: /
+  port_map: "6052"
+  scheme: http
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/esphome.svg
+  title:
+    en_US: ESPHome
+  tagline:
+    en_US: Build and update firmware for ESP32 and ESP8266 devices
+  description:
+    en_US: >-
+      ESPHome Device Builder dashboard on HTTP port 6052 for writing device
+      YAML, compiling firmware, and updating devices over the air. It runs in
+      bridge mode, so mDNS does not reach the container: .local device names
+      do not resolve and new devices are not discovered for adoption. Give
+      each device a static IP or a wifi use_address so the dashboard can
+      reach it for status and updates. Login is required by default. All
+      Linux capabilities except DAC_OVERRIDE are dropped, and no USB or serial
+      device is mapped, so the first flash of a new board happens from a
+      browser or another machine and later updates go over the air.
+  tips:
+    before_install:
+      en_US: >-
+        Set ESPHOME_PASSWORD before installing; the dashboard refuses to start
+        while it is empty. Keep port 6052 on a trusted LAN and put any
+        external access behind an authenticated reverse proxy, VPN, or
+        tunnel. Bridge mode blocks mDNS, so set wifi use_address (or a
+        manual_ip) on every device; otherwise the dashboard cannot find it by
+        its .local name for status or over-the-air updates. The config
+        directory holds secrets.yaml with Wi-Fi passwords and device API and
+        OTA keys; treat backups as sensitive. Compiling downloads several
+        hundred MB of toolchains into it on first build. Flash new boards over
+        USB from another machine or https://web.esphome.io, or add a stable
+        /dev/serial/by-id device mapping only after review.
+  author: thundersquared
+  developer: ESPHome
+  category: Home
+  architectures:
+    - amd64
+    - arm64
+  version: "2026.10.1"
+  release_notes:
+    en_US: Pinned ghcr.io/esphome/esphome:2026.10.1 at sha256:eab8cd6b4f51.
+  website: https://esphome.io/
+  repo: https://github.com/esphome/esphome
+  support: https://github.com/esphome/esphome/issues
+  docs: https://esphome.io/guides/getting_started_command_line/
