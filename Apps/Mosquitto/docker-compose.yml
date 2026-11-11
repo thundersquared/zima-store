@@ -146,9 +146,9 @@ x-casaos:
     - arm64
   version_suffix: "-alpine"
   version: "2.1.2"
-  update_at: "2026-10-27"
+  update_at: "2026-11-11"
   release_notes:
-    en_US: Pinned eclipse-mosquitto:2.1.2-alpine at sha256:860aeb5d63ce.
+    en_US: Pinned eclipse-mosquitto:2.1.2-alpine at sha256:75d6662dee52.
   website: https://mosquitto.org/
   repo: https://github.com/eclipse-mosquitto/mosquitto
   support: https://github.com/eclipse-mosquitto/mosquitto/discussions
