@@ -2,7 +2,7 @@ name: thundersquared-homeassistant
 services:
   homeassistant:
     # renovate: datasource=docker depName=lscr.io/linuxserver/homeassistant
-    image: lscr.io/linuxserver/homeassistant:2026.10.4@sha256:352e928e4db1e4d4946e118b84acdd9a6f95d3e7c206686f8bde0ad609672eba
+    image: lscr.io/linuxserver/homeassistant:2026.11.1@sha256:2796670c10ff4c378adc7d3553e4fffe54856d794bad33fdd41313190ee1a46e
     environment:
       PUID: $PUID
       PGID: $PGID
