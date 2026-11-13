@@ -2,7 +2,7 @@ name: thundersquared-proxmox-backup
 services:
   proxmox-backup:
     # renovate: datasource=docker depName=dockurr/proxmox-backup
-    image: dockurr/proxmox-backup:4.2.9@sha256:3c51459801f084dcb0f0d0b2569145d74acd599c2b295e0b67faea753c6a3c4b
+    image: dockurr/proxmox-backup:4.2.10@sha256:158c15e9b0377c1ddff87d3ffafa84164c6e418271e87bdd2f60a5a48b7cc501
     hostname: pbs
     environment:
       TZ: $TZ
