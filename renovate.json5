@@ -14,7 +14,7 @@
   "prHourlyLimit": 0,
   "internalChecksFilter": "strict",
   "minimumReleaseAge": "1 day",
-  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
   "rebaseWhen": "conflicted",
   "separateMajorMinor": true,
   "packageRules": [
