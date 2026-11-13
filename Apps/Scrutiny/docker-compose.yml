@@ -113,9 +113,10 @@ x-casaos:
     - arm64
   version_prefix: "v"
   version_suffix: "-omnibus"
-  version: "0.9.5"
+  version: "0.10.0"
+  update_at: '2026-11-13'
   release_notes:
-    en_US: Pinned ghcr.io/analogj/scrutiny:v0.9.5-omnibus at sha256:6ee271ee5314.
+    en_US: Pinned ghcr.io/analogj/scrutiny:v0.10.0-omnibus at sha256:90062edac57a.
   website: https://github.com/AnalogJ/scrutiny
   repo: https://github.com/AnalogJ/scrutiny
   support: https://github.com/AnalogJ/scrutiny/issues

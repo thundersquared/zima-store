@@ -99,9 +99,10 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  version: "2026.10.1"
+  version: "2026.10.2"
+  update_at: '2026-11-13'
   release_notes:
-    en_US: Pinned ghcr.io/esphome/esphome:2026.10.1 at sha256:eab8cd6b4f51.
+    en_US: Pinned ghcr.io/esphome/esphome:2026.10.2 at sha256:4a918585150e.
   website: https://esphome.io/
   repo: https://github.com/esphome/esphome
   support: https://github.com/esphome/esphome/issues
