@@ -1,61 +1,87 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "docker:pinDigests",
-    "helpers:pinGitHubActionDigests"
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    'docker:pinDigests',
+    'helpers:pinGitHubActionDigests',
   ],
-  "enabledManagers": ["docker-compose", "github-actions"],
-  "dependencyDashboard": true,
-  "dependencyDashboardAutoclose": true,
-  "automerge": false,
-  "prCreation": "immediate",
-  "prConcurrentLimit": 0,
-  "prHourlyLimit": 0,
-  "internalChecksFilter": "strict",
-  "minimumReleaseAge": "1 day",
-  "minimumReleaseAgeBehaviour": "timestamp-optional",
-  "rebaseWhen": "conflicted",
-  "separateMajorMinor": true,
-  "packageRules": [
+  enabledManagers: [
+    'docker-compose',
+    'github-actions',
+  ],
+  dependencyDashboard: {
+    enabled: true,
+    autoclose: true,
+  },
+  automerge: false,
+  prCreation: 'immediate',
+  prConcurrentLimit: 0,
+  prHourlyLimit: 0,
+  internalChecksFilter: 'strict',
+  minimumReleaseAge: '1 day',
+  minimumReleaseAgeBehaviour: 'timestamp-optional',
+  rebaseWhen: 'conflicted',
+  separateMajorMinor: true,
+  packageRules: [
     {
-      "description": "Group app image updates",
-      "matchFileNames": ["Apps/**/docker-compose.yml"],
-      "matchDatasources": ["docker"],
-      "groupName": "app images"
-    },
-    {
-      "description": "Automerge non-major updates of the actions our workflows use, once checks pass",
-      "matchManagers": ["github-actions"],
-      "matchDepTypes": ["action"],
-      "matchPackageNames": [
-        "actions/checkout",
-        "actions/deploy-pages",
-        "actions/upload-artifact",
-        "actions/upload-pages-artifact",
-        "aquasecurity/trivy-action",
-        "astral-sh/setup-uv",
-        "github/codeql-action",
-        "github/codeql-action/upload-sarif",
-        "IceWhaleTech/build-appstore-action"
+      description: 'Group app image updates',
+      matchFileNames: [
+        'Apps/**/docker-compose.yml',
       ],
-      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
-      "automerge": true
+      matchDatasources: [
+        'docker',
+      ],
+      groupName: 'app images',
     },
     {
-      "description": "Refresh moving container channels immediately",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["digest"],
-      "matchCurrentValue": "/^(latest|stable|edge|master|master-debian)$/",
-      "minimumReleaseAge": "0 days",
-      "addLabels": ["upstream-moving-tag"]
-    }
+      description: 'Automerge non-major updates of the actions our workflows use, once checks pass',
+      matchManagers: [
+        'github-actions',
+      ],
+      matchDepTypes: [
+        'action',
+      ],
+      matchPackageNames: [
+        'actions/checkout',
+        'actions/deploy-pages',
+        'actions/upload-artifact',
+        'actions/upload-pages-artifact',
+        'aquasecurity/trivy-action',
+        'astral-sh/setup-uv',
+        'github/codeql-action',
+        'github/codeql-action/upload-sarif',
+        'IceWhaleTech/build-appstore-action',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+        'digest',
+        'pinDigest',
+      ],
+      automerge: true,
+    },
+    {
+      description: 'Refresh moving container channels immediately',
+      matchDatasources: [
+        'docker',
+      ],
+      matchUpdateTypes: [
+        'digest',
+      ],
+      matchCurrentValue: '/^(latest|stable|edge|master|master-debian)$/',
+      minimumReleaseAge: '0 days',
+      addLabels: [
+        'upstream-moving-tag',
+      ],
+    },
   ],
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "minimumReleaseAge": "0 days",
-    "prCreation": "immediate",
-    "labels": ["security"],
-    "automerge": false
-  }
+  vulnerabilityAlerts: {
+    enabled: true,
+    minimumReleaseAge: '0 days',
+    prCreation: 'immediate',
+    labels: [
+      'security',
+    ],
+    automerge: false,
+  },
 }
